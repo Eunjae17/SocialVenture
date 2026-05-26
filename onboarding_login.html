@@ -82,24 +82,45 @@
 <script>
   Kakao.init('4825517f3d957c77bda439ac0479327d');
 
-  document.getElementById('btn-kakao').addEventListener('click', function() {
-    Kakao.Auth.login({
-      success: function(authObj) {
-        Kakao.API.request({
-          url: '/v2/user/me',
-          success: function(res) {
-            var nickname = res.kakao_account && res.kakao_account.profile && res.kakao_account.profile.nickname;
-            if (nickname) {
-              localStorage.setItem('userNickname', nickname);
-              window.location.href = 'home.html';
-            } else {
-              window.location.href = 'onboarding_nickname.html';
-            }
-          },
-          fail: function() { window.location.href = 'onboarding_nickname.html'; }
+  // Проверяем если вернулись после авторизации Kakao
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var code = params.get('code');
+    if (code) {
+      // Получаем токен через REST API
+      fetch('https://kauth.kakao.com/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: '4825517f3d957c77bda439ac0479327d',
+          redirect_uri: window.location.origin + '/onboarding_login.html',
+          code: code
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(token) {
+        return fetch('https://kapi.kakao.com/v2/user/me', {
+          headers: { 'Authorization': 'Bearer ' + token.access_token }
         });
-      },
-      fail: function(err) { console.log('Kakao login failed:', err); }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(user) {
+        var nickname = user.kakao_account && user.kakao_account.profile && user.kakao_account.profile.nickname;
+        if (nickname) {
+          localStorage.setItem('userNickname', nickname);
+        }
+        window.location.href = 'home.html';
+      })
+      .catch(function() {
+        window.location.href = 'onboarding_nickname.html';
+      });
+    }
+  })();
+
+  document.getElementById('btn-kakao').addEventListener('click', function() {
+    Kakao.Auth.authorize({
+      redirectUri: window.location.origin + '/onboarding_login.html'
     });
   });
 
