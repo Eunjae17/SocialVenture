@@ -59,6 +59,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justi
 .pbar{height:4px;background:var(--g2);border-radius:2px;overflow:hidden}
 .pfill{height:100%;background:var(--g);border-radius:2px}
 
+/* 옷 추천 카드 */
+.cloth-scroll{display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px;margin-bottom:18px}
+.cloth-scroll::-webkit-scrollbar{display:none}
+.cloth-card{min-width:120px;background:var(--g1);border-radius:var(--r);border:1px solid var(--g2);overflow:hidden;cursor:pointer;flex-shrink:0}
+.cloth-card img{width:100%;height:140px;object-fit:cover;display:block}
+.cloth-card-body{padding:8px 10px 10px}
+.cloth-card-name{font-size:12px;font-weight:700;color:var(--g9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cloth-card-pts{font-size:12px;font-weight:800;color:var(--g);margin-top:2px}
+
 /* 기록 */
 .hlist{padding:0 20px;display:flex;flex-direction:column;gap:8px;padding-bottom:16px}
 .hc{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--g1);border-radius:var(--rs);border:1px solid var(--g2)}
@@ -145,6 +154,29 @@ body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justi
 <div class="cta-t">챌린지 등록하기</div>
 <div class="cta-i">👕</div>
 </button>
+</div>
+<div class="stitle">마켓 추천 아이템</div>
+<div class="cloth-scroll">
+  <div class="cloth-card">
+    <img src="https://picsum.photos/seed/cloth1/240/280" alt="베이지 린넨 셔츠">
+    <div class="cloth-card-body"><div class="cloth-card-name">베이지 린넨 셔츠</div><div class="cloth-card-pts">1,200P</div></div>
+  </div>
+  <div class="cloth-card">
+    <img src="https://picsum.photos/seed/cloth2/240/280" alt="화이트 오버핏 티">
+    <div class="cloth-card-body"><div class="cloth-card-name">화이트 오버핏 티</div><div class="cloth-card-pts">800P</div></div>
+  </div>
+  <div class="cloth-card">
+    <img src="https://picsum.photos/seed/cloth3/240/280" alt="블루 데님 자켓">
+    <div class="cloth-card-body"><div class="cloth-card-name">블루 데님 자켓</div><div class="cloth-card-pts">2,100P</div></div>
+  </div>
+  <div class="cloth-card">
+    <img src="https://picsum.photos/seed/cloth4/240/280" alt="올리브 카고 팬츠">
+    <div class="cloth-card-body"><div class="cloth-card-name">올리브 카고 팬츠</div><div class="cloth-card-pts">1,500P</div></div>
+  </div>
+  <div class="cloth-card">
+    <img src="https://picsum.photos/seed/cloth5/240/280" alt="그레이 후드 집업">
+    <div class="cloth-card-body"><div class="cloth-card-name">그레이 후드 집업</div><div class="cloth-card-pts">1,800P</div></div>
+  </div>
 </div>
 <div class="stitle">챌린지 기록</div>
 <div style="padding:20px;background:var(--g1);margin:0 20px;border-radius:var(--r);text-align:center;font-size:13px;color:var(--g4)">아직 도전 중인 챌린지가 없어요</div>
