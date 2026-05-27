@@ -133,7 +133,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justi
 <!-- ══ STEP 1: 아이템 정보 입력 ══ -->
 <div class="sc on" id="step1">
   <div class="tb">
-    <button class="bk" onclick="history.back()">‹</button>
+    <button class="bk" onclick="window.location.href='home.html'">‹</button>
     <h2>챌린지 등록</h2>
   </div>
   <div class="step-bar">
@@ -558,20 +558,8 @@ function goBack(step) {
 }
 
 function goHome() {
-  showToast('홈 화면으로 돌아가요 🏠');
-  setTimeout(() => {
-    stopCamera();
-    capturedPhoto = null;
-    selectedCat = '';
-    days = 7;
-    document.getElementById('item-name').value = '';
-    document.getElementById('step2-next').disabled = true;
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-    [3, 5, 7].forEach(n => {
-      document.getElementById('card-' + n).classList.toggle('on', n === 7);
-    });
-    showScreen('step1');
-  }, 1200);
+  stopCamera();
+  window.location.href = 'home.html';
 }
 
 function showScreen(id) {
