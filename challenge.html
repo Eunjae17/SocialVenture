@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>옷옷 — 챌린지 등록</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --g:#00C950;--gl:#E8FFF1;--gd:#00A040;--gb:#F0FDF4;
+  --g1:#F8FAFC;--g2:#E2E8F0;--g3:#CBD5E1;--g4:#94A3B8;--g5:#64748B;--g7:#334155;--g9:#0F172A;
+  --w:#fff;--r:14px;--rs:10px
+}
+body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:24px 0 40px}
+#app{width:390px;min-height:844px;background:var(--w);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.sc{display:none;flex-direction:column;height:844px;background:var(--w);overflow:hidden}
+.sc.on{display:flex}
+.sl{overflow-y:auto;overflow-x:hidden;flex:1}
+.sl::-webkit-scrollbar{display:none}
+
+/* TOPBAR */
+.tb{display:flex;align-items:center;justify-content:center;padding:14px 20px;position:relative;border-bottom:1px solid #f0f0f0;flex-shrink:0;background:var(--w)}
+.tb h2{font-size:16px;font-weight:700;color:var(--g9)}
+.bk{position:absolute;left:16px;background:none;border:none;cursor:pointer;font-size:22px;color:var(--g7);width:36px;height:36px;display:flex;align-items:center;justify-content:center}
+
+/* STEP BAR */
+.step-bar{display:flex;padding:20px 24px 0;gap:6px;flex-shrink:0}
+.step-dot{flex:1;height:4px;border-radius:2px;background:var(--g2);transition:background .3s}
+.step-dot.on{background:var(--g)}
+
+/* BUTTONS */
+.btn{background:var(--g);color:#fff;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;width:100%;transition:opacity .15s}
+.btn:active{opacity:.85}
+.btn.wh{background:var(--w);color:var(--g9);border:1.5px solid var(--g2)}
+.btn:disabled{background:var(--g2);color:var(--g4);cursor:not-allowed}
+.bwrap{padding:12px 20px 28px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+
+/* ── STEP 1: 아이템 입력 ── */
+.form-section{padding:24px 20px 0}
+.form-label{font-size:13px;font-weight:600;color:var(--g7);margin-bottom:8px}
+.form-input{width:100%;border:1.5px solid var(--g2);border-radius:12px;padding:14px 16px;font-size:15px;font-family:'Noto Sans KR',sans-serif;color:var(--g9);outline:none;transition:border .2s}
+.form-input:focus{border-color:var(--g)}
+.form-input::placeholder{color:var(--g4)}
+.form-gap{height:18px}
+.chip-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.chip{padding:8px 16px;border-radius:20px;border:1.5px solid var(--g2);font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;color:var(--g7);font-weight:500;background:var(--w);transition:all .2s}
+.chip.on{background:var(--g);color:#fff;border-color:var(--g)}
+.hint{font-size:12px;color:var(--g4);margin-top:6px}
+
+/* ── 기간 카드 선택 ── */
+.day-cards{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.day-card{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-radius:14px;border:2px solid var(--g2);background:var(--w);cursor:pointer;transition:all .2s}
+.day-card:active{transform:scale(.98)}
+.day-card.on{border-color:var(--g);background:var(--gl)}
+.day-card-left{display:flex;align-items:center;gap:14px}
+.day-radio{width:22px;height:22px;border-radius:50%;border:2px solid var(--g3);background:var(--w);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.day-card.on .day-radio{border-color:var(--g);background:var(--g)}
+.day-radio-inner{width:9px;height:9px;border-radius:50%;background:#fff;opacity:0;transition:opacity .2s}
+.day-card.on .day-radio-inner{opacity:1}
+.day-card-title{font-size:15px;font-weight:700;color:var(--g9)}
+.day-card-sub{font-size:12px;color:var(--g5);margin-top:2px}
+.day-card-pts{font-size:16px;font-weight:800;color:var(--g4);transition:color .2s}
+.day-card.on .day-card-pts{color:var(--g)}
+
+/* ── STEP 2: 카메라 ── */
+.cam-wrap{position:relative;margin:20px;border-radius:20px;overflow:hidden;background:#000;flex-shrink:0}
+.cam-video{width:100%;display:block;border-radius:20px;object-fit:cover}
+.cam-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:20px}
+.cam-guide{border:2px solid rgba(255,255,255,.6);border-radius:16px;width:80%;height:60%;display:flex;align-items:center;justify-content:center}
+.cam-guide-txt{color:rgba(255,255,255,.8);font-size:13px;font-weight:500;text-align:center;line-height:1.6}
+.cam-badge{background:rgba(0,0,0,.5);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px;backdrop-filter:blur(6px)}
+.shutter-row{display:flex;align-items:center;justify-content:center;gap:40px;padding:0 0 12px}
+.shutter-btn{width:72px;height:72px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:transform .1s}
+.shutter-btn:active{transform:scale(.93)}
+.shutter-inner{width:56px;height:56px;border-radius:50%;background:#fff}
+.cam-side-btn{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.cam-side-btn svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cam-no-support{display:flex;flex-direction:column;align-items:center;justify-content:center;height:260px;gap:12px;color:var(--g5)}
+.cam-no-support .icon{font-size:48px}
+.upload-box{margin:0 20px;border:2px dashed var(--g2);border-radius:16px;padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;background:var(--g1)}
+.upload-box svg{width:40px;height:40px;stroke:var(--g4);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.upload-box p{font-size:14px;color:var(--g5);font-weight:500}
+.upload-box span{font-size:12px;color:var(--g4)}
+#file-input{display:none}
+
+/* ── STEP 2: 사진 미리보기 ── */
+.preview-wrap{margin:20px;border-radius:20px;overflow:hidden;position:relative;flex-shrink:0}
+.preview-img{width:100%;border-radius:20px;display:block;object-fit:cover;max-height:300px}
+.preview-retake{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;backdrop-filter:blur(4px)}
+.photo-tips{margin:0 20px;background:var(--gl);border-radius:12px;padding:14px 16px}
+.photo-tips p{font-size:12px;color:var(--gd);font-weight:600;margin-bottom:6px}
+.photo-tips ul{padding-left:16px}
+.photo-tips li{font-size:12px;color:var(--gd);line-height:1.8}
+
+/* ── STEP 3: 확인 ── */
+.confirm-card{margin:20px;background:var(--g1);border-radius:16px;overflow:hidden}
+.confirm-img{width:100%;height:200px;object-fit:cover;display:block}
+.confirm-info{padding:16px}
+.confirm-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--g2)}
+.confirm-row:last-child{border-bottom:none}
+.confirm-label{font-size:13px;color:var(--g5)}
+.confirm-val{font-size:13px;font-weight:600;color:var(--g9)}
+.pts-preview{margin:0 20px;background:var(--g);border-radius:14px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+.pts-preview-left p{font-size:13px;color:rgba(255,255,255,.8);margin-bottom:4px}
+.pts-preview-left strong{font-size:22px;font-weight:800;color:#fff}
+.pts-preview-right{font-size:36px}
+
+/* ── STEP 4: 완료 ── */
+.done-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:16px}
+.done-icon{width:80px;height:80px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(.6);opacity:0}80%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.done-title{font-size:20px;font-weight:800;color:var(--g9);text-align:center}
+.done-sub{font-size:14px;color:var(--g5);text-align:center;line-height:1.6}
+.done-pts{background:var(--gl);border-radius:16px;padding:16px 24px;text-align:center;width:100%}
+.done-pts p{font-size:13px;color:var(--gd);margin-bottom:4px}
+.done-pts strong{font-size:24px;font-weight:800;color:var(--gd)}
+.done-challenge{background:var(--g1);border-radius:12px;padding:14px 16px;width:100%;display:flex;align-items:center;gap:12px}
+.done-challenge-info{flex:1}
+.done-challenge-info p{font-size:14px;font-weight:700;color:var(--g9)}
+.done-challenge-info span{font-size:12px;color:var(--g5)}
+.pbar{height:6px;background:var(--g2);border-radius:3px;overflow:hidden;margin-top:8px}
+.pfill{height:100%;background:var(--g);border-radius:3px;width:0%;transition:width 1s ease .5s}
+
+/* TOAST */
+.toast{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:11px 20px;border-radius:20px;font-size:13px;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ STEP 1: 아이템 정보 입력 ══ -->
+<div class="sc on" id="step1">
+  <div class="tb">
+    <button class="bk" onclick="window.location.href='home.html'">‹</button>
+    <h2>챌린지 등록</h2>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div>
+    <div class="step-dot"></div>
+    <div class="step-dot"></div>
+  </div>
+  <div class="sl">
+    <div class="form-section">
+      <p style="font-size:13px;color:var(--g5);margin-bottom:20px;margin-top:12px;line-height:1.6">
+        등록할 옷 정보를 입력하고<br>상품 사진을 찍어 챌린지를 시작하세요 🌿
+      </p>
+
+      <div class="form-label">옷 이름</div>
+      <input class="form-input" id="item-name" type="text" placeholder="예) 흰색 린넨 셔츠" maxlength="20">
+      <div class="form-gap"></div>
+
+      <div class="form-label">카테고리</div>
+      <div class="chip-wrap" id="cat-chips">
+        <button class="chip" onclick="selectChip(this)">상의</button>
+        <button class="chip" onclick="selectChip(this)">하의</button>
+        <button class="chip" onclick="selectChip(this)">아우터</button>
+        <button class="chip" onclick="selectChip(this)">원피스</button>
+        <button class="chip" onclick="selectChip(this)">액세서리</button>
+      </div>
+      <div class="form-gap"></div>
+
+      <div class="form-label">챌린지 기간</div>
+      <div class="day-cards">
+
+        <div class="day-card" id="card-3" onclick="selectDays(3)">
+          <div class="day-card-left">
+            <div class="day-radio"><div class="day-radio-inner"></div></div>
+            <div>
+              <div class="day-card-title">3일 챌린지</div>
+              <div class="day-card-sub">하루 100P · 3일 연속 인증</div>
+            </div>
+          </div>
+          <span class="day-card-pts">300P</span>
+        </div>
+
+        <div class="day-card" id="card-5" onclick="selectDays(5)">
+          <div class="day-card-left">
+            <div class="day-radio"><div class="day-radio-inner"></div></div>
+            <div>
+              <div class="day-card-title">5일 챌린지</div>
+              <div class="day-card-sub">하루 110P · 5일 연속 인증</div>
+            </div>
+          </div>
+          <span class="day-card-pts">550P</span>
+        </div>
+
+        <div class="day-card on" id="card-7" onclick="selectDays(7)">
+          <div class="day-card-left">
+            <div class="day-radio"><div class="day-radio-inner"></div></div>
+            <div>
+              <div class="day-card-title">7일 챌린지</div>
+              <div class="day-card-sub">하루 120P · 7일 연속 인증</div>
+            </div>
+          </div>
+          <span class="day-card-pts">840P</span>
+        </div>
+
+      </div>
+    </div>
+    <div style="height:24px"></div>
+  </div>
+  <div class="bwrap">
+    <button class="btn" id="step1-next" onclick="goStep2()">다음 — 상품 사진 찍기 📷</button>
+  </div>
+</div>
+
+<!-- ══ STEP 2: 카메라 촬영 ══ -->
+<div class="sc" id="step2">
+  <div class="tb">
+    <button class="bk" onclick="goBack(2)">‹</button>
+    <h2>상품 사진 찍기</h2>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div>
+    <div class="step-dot on"></div>
+    <div class="step-dot"></div>
+  </div>
+  <div class="sl" id="cam-area">
+    <!-- 카메라 지원 시 -->
+    <div id="cam-live" style="display:none;flex-direction:column">
+      <div class="cam-wrap" style="height:400px">
+        <video id="cam-video" class="cam-video" autoplay playsinline muted style="height:400px"></video>
+        <div class="cam-overlay">
+          <span class="cam-badge" id="cam-facing-label">후면 카메라</span>
+          <div class="cam-guide">
+            <p class="cam-guide-txt">옷이 잘 보이도록<br>맞춰주세요 👕</p>
+          </div>
+          <div class="shutter-row">
+            <button class="cam-side-btn" onclick="flipCamera()" title="카메라 전환">
+              <svg viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            </button>
+            <button class="shutter-btn" onclick="takePhoto()">
+              <div class="shutter-inner"></div>
+            </button>
+            <button class="cam-side-btn" onclick="openGallery()" title="갤러리">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="photo-tips" style="margin:0 20px">
+        <p>📌 촬영 팁</p>
+        <ul>
+          <li>밝은 곳에서 옷이 잘 보이게 찍어요</li>
+          <li>옷의 색상·소재가 잘 나오면 더 좋아요</li>
+          <li>챌린지 등록 후에는 매일 착용 인증을 해요</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 카메라 미지원 / 권한 거부 시 -->
+    <div id="cam-fallback" style="display:none;flex-direction:column;gap:16px;padding-top:20px">
+      <div style="margin:0 20px;padding:16px;background:#FFF7ED;border-radius:14px;display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:24px">⚠️</span>
+        <div>
+          <p style="font-size:14px;font-weight:700;color:#92400E;margin-bottom:4px">카메라 권한이 필요해요</p>
+          <p style="font-size:12px;color:#B45309;line-height:1.6">브라우저 설정에서 카메라 권한을 허용하거나,<br>아래 버튼으로 갤러리에서 직접 선택하세요.</p>
+        </div>
+      </div>
+      <label class="upload-box" for="file-input">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p>갤러리에서 사진 선택</p>
+        <span>JPG, PNG · 최대 10MB</span>
+      </label>
+      <input type="file" id="file-input" accept="image/*" onchange="handleFile(event)">
+    </div>
+
+    <!-- 사진 찍힌 후 미리보기 -->
+    <div id="cam-preview" style="display:none;flex-direction:column;gap:14px;padding-top:20px">
+      <div class="preview-wrap">
+        <img id="preview-img" class="preview-img" src="" alt="상품 사진 미리보기">
+        <button class="preview-retake" onclick="retakePhoto()">다시 찍기</button>
+      </div>
+      <div class="photo-tips">
+        <p>✅ 사진이 잘 나왔나요?</p>
+        <ul>
+          <li>등록할 옷이 선명하게 보이나요?</li>
+          <li>색상과 상태가 잘 표현됐나요?</li>
+          <li>마음에 들지 않으면 다시 찍어보세요</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="bwrap">
+    <button class="btn" id="step2-next" disabled onclick="goStep3()">이 사진으로 등록하기</button>
+  </div>
+</div>
+
+<!-- ══ STEP 3: 최종 확인 ══ -->
+<div class="sc" id="step3">
+  <div class="tb">
+    <button class="bk" onclick="goBack(3)">‹</button>
+    <h2>챌린지 확인</h2>
+  </div>
+  <div class="step-bar">
+    <div class="step-dot on"></div>
+    <div class="step-dot on"></div>
+    <div class="step-dot on"></div>
+  </div>
+  <div class="sl">
+    <div style="padding:20px 20px 0">
+      <p style="font-size:13px;color:var(--g5);line-height:1.6;margin-bottom:16px">
+        챌린지 정보를 확인하고 등록하세요 🌱<br>등록 후 매일 착용 인증 사진을 올리면 포인트가 적립돼요.
+      </p>
+    </div>
+    <div class="confirm-card">
+      <img id="confirm-photo" class="confirm-img" src="" alt="">
+      <div class="confirm-info">
+        <div class="confirm-row">
+          <span class="confirm-label">아이템</span>
+          <span class="confirm-val" id="confirm-name">—</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">카테고리</span>
+          <span class="confirm-val" id="confirm-cat">—</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">챌린지 기간</span>
+          <span class="confirm-val" id="confirm-days">—</span>
+        </div>
+        <div class="confirm-row">
+          <span class="confirm-label">시작일</span>
+          <span class="confirm-val" id="confirm-start">—</span>
+        </div>
+      </div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="pts-preview">
+      <div class="pts-preview-left">
+        <p>챌린지 완료 시 획득</p>
+        <strong id="confirm-pts">—</strong>
+      </div>
+      <div class="pts-preview-right">🎁</div>
+    </div>
+    <div style="height:20px"></div>
+    <div style="margin:0 20px;padding:14px 16px;background:var(--g1);border-radius:12px">
+      <p style="font-size:12px;color:var(--g5);line-height:1.7">
+        📋 <strong style="color:var(--g7)">챌린지 규칙</strong><br>
+        · 매일 오전 6시 ~ 자정 사이에 착장 인증<br>
+        · 하루라도 미인증 시 챌린지 연장 가능 (1회)<br>
+        · 완료 후 포인트는 즉시 지급돼요
+      </p>
+    </div>
+    <div style="height:20px"></div>
+  </div>
+  <div class="bwrap">
+    <button class="btn" onclick="submitChallenge()">챌린지 시작하기 🚀</button>
+    <button class="btn wh" onclick="goBack(3)">수정하기</button>
+  </div>
+</div>
+
+<!-- ══ STEP 4: 등록 완료 ══ -->
+<div class="sc" id="step4">
+  <div class="sl" style="display:flex;flex-direction:column">
+    <div class="done-wrap">
+      <div class="done-icon">🎉</div>
+      <div class="done-title">챌린지가 시작됐어요!</div>
+      <div class="done-sub" id="done-sub">흰색 린넨 셔츠 챌린지가<br>오늘부터 7일간 진행돼요.</div>
+      <div class="done-pts">
+        <p>완료 시 획득 포인트</p>
+        <strong id="done-pts">840P</strong>
+      </div>
+      <div class="done-challenge">
+        <span style="font-size:28px">👕</span>
+        <div class="done-challenge-info">
+          <p id="done-item-name">흰색 린넨 셔츠</p>
+          <span id="done-progress">0일 / 7일 완료</span>
+          <div class="pbar"><div class="pfill" id="done-pfill"></div></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--g4);text-align:center;line-height:1.7">
+        매일 알림을 보내드릴게요 🔔<br>내일도 잊지 말고 인증해주세요!
+      </p>
+    </div>
+  </div>
+  <div class="bwrap">
+    <button class="btn" onclick="goHome()">홈으로 가기</button>
+    <button class="btn wh" onclick="goHome()">마켓 둘러보기</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+</div><!-- #app -->
+
+<script>
+/* ── 상태 ── */
+let days = 7;
+let selectedCat = '';
+let capturedPhoto = null;  // base64 or blob URL
+let stream = null;
+let facingMode = 'environment'; // 'environment' = 후면, 'user' = 전면
+
+/* ── STEP 1 ── */
+function selectChip(el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  selectedCat = el.textContent;
+}
+
+const DAY_PTS = { 3: 300, 5: 550, 7: 840 };
+
+function selectDays(d) {
+  days = d;
+  [3, 5, 7].forEach(n => {
+    document.getElementById('card-' + n).classList.toggle('on', n === d);
+  });
+}
+
+function goStep2() {
+  const name = document.getElementById('item-name').value.trim();
+  if (!name) { showToast('옷 이름을 입력해주세요'); return; }
+  if (!selectedCat) { showToast('카테고리를 선택해주세요'); return; }
+  showScreen('step2');
+  startCamera();
+}
+
+/* ── STEP 2: 카메라 ── */
+async function startCamera() {
+  // 이미 찍은 사진이 있으면 바로 미리보기
+  if (capturedPhoto) {
+    showPreview(capturedPhoto);
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showFallback();
+    return;
+  }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false
+    });
+    const video = document.getElementById('cam-video');
+    video.srcObject = stream;
+    document.getElementById('cam-live').style.display = 'flex';
+    document.getElementById('cam-fallback').style.display = 'none';
+    document.getElementById('cam-preview').style.display = 'none';
+    updateFacingLabel();
+  } catch (e) {
+    showFallback();
+  }
+}
+
+function updateFacingLabel() {
+  document.getElementById('cam-facing-label').textContent =
+    facingMode === 'environment' ? '후면 카메라' : '전면 카메라';
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+}
+
+async function flipCamera() {
+  stopCamera();
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  await startCamera();
+}
+
+function takePhoto() {
+  const video = document.getElementById('cam-video');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  capturedPhoto = dataUrl;
+  stopCamera();
+  showPreview(dataUrl);
+}
+
+function openGallery() {
+  document.getElementById('file-input').click();
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { showToast('10MB 이하 사진만 가능해요'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    capturedPhoto = ev.target.result;
+    showPreview(capturedPhoto);
+    document.getElementById('cam-live').style.display = 'none';
+    document.getElementById('cam-fallback').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function showFallback() {
+  document.getElementById('cam-live').style.display = 'none';
+  document.getElementById('cam-fallback').style.display = 'flex';
+  document.getElementById('cam-preview').style.display = 'none';
+}
+
+function showPreview(src) {
+  document.getElementById('preview-img').src = src;
+  document.getElementById('cam-live').style.display = 'none';
+  document.getElementById('cam-fallback').style.display = 'none';
+  document.getElementById('cam-preview').style.display = 'flex';
+  document.getElementById('step2-next').disabled = false;
+}
+
+function retakePhoto() {
+  capturedPhoto = null;
+  document.getElementById('step2-next').disabled = true;
+  // 파일 인풋 초기화
+  document.getElementById('file-input').value = '';
+  startCamera();
+}
+
+/* ── STEP 3 ── */
+function goStep3() {
+  const name = document.getElementById('item-name').value.trim();
+  const today = new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+  const pts = DAY_PTS[days];
+  document.getElementById('confirm-photo').src = capturedPhoto;
+  document.getElementById('confirm-name').textContent = name;
+  document.getElementById('confirm-cat').textContent = selectedCat;
+  document.getElementById('confirm-days').textContent = days + '일';
+  document.getElementById('confirm-start').textContent = today;
+  document.getElementById('confirm-pts').textContent = pts.toLocaleString() + 'P';
+  showScreen('step3');
+}
+
+/* ── STEP 4 ── */
+function submitChallenge() {
+  const name = document.getElementById('item-name').value.trim();
+  const pts = DAY_PTS[days];
+  document.getElementById('done-sub').innerHTML =
+    `<strong>${name}</strong> 챌린지가<br>오늘부터 <strong>${days}일</strong>간 진행돼요.`;
+  document.getElementById('done-pts').textContent = pts.toLocaleString() + 'P';
+  document.getElementById('done-item-name').textContent = name;
+  document.getElementById('done-progress').textContent = `0일 / ${days}일 완료`;
+  showScreen('step4');
+  setTimeout(() => {
+    document.getElementById('done-pfill').style.width = '4%';
+  }, 600);
+}
+
+/* ── 공통 ── */
+function goBack(step) {
+  if (step === 2) {
+    stopCamera();
+    capturedPhoto = null;
+    document.getElementById('step2-next').disabled = true;
+    showScreen('step1');
+  } else if (step === 3) {
+    showScreen('step2');
+    startCamera();
+  }
+}
+
+function goHome() {
+  stopCamera();
+  window.location.href = 'home.html';
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.sc').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// 페이지 나갈 때 카메라 정리
+window.addEventListener('beforeunload', stopCamera);
+</script>
+</body>
+</html>
