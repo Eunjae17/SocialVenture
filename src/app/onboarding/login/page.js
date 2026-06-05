@@ -6,44 +6,34 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if returning from Kakao OAuth
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-    if (code) {
-      fetch('https://kauth.kakao.com/oauth/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          client_id: '4825517f3d957c77bda439ac0479327d',
-          redirect_uri: window.location.origin + '/onboarding/login',
-          code: code
-        })
+    if (!code) return;
+
+    fetch('/api/kakao/callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        redirectUri: window.location.origin + '/onboarding/login',
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.nickname) {
+          localStorage.setItem('userNickname', data.nickname);
+        }
+        router.push('/home');
       })
-        .then(r => r.json())
-        .then(token =>
-          fetch('https://kapi.kakao.com/v2/user/me', {
-            headers: { 'Authorization': 'Bearer ' + token.access_token }
-          })
-        )
-        .then(r => r.json())
-        .then(user => {
-          const nickname = user.kakao_account && user.kakao_account.profile && user.kakao_account.profile.nickname;
-          if (nickname) {
-            localStorage.setItem('userNickname', nickname);
-          }
-          router.push('/home');
-        })
-        .catch(() => {
-          router.push('/onboarding/nickname');
-        });
-    }
+      .catch(() => {
+        router.push('/onboarding/nickname');
+      });
   }, [router]);
 
   function handleKakaoLogin() {
-    if (typeof window !== 'undefined' && window.Kakao) {
+    if (typeof window !== 'undefined' && window.Kakao && window.Kakao.isInitialized()) {
       window.Kakao.Auth.authorize({
-        redirectUri: window.location.origin + '/onboarding/login'
+        redirectUri: window.location.origin + '/onboarding/login',
       });
     }
   }
@@ -147,7 +137,6 @@ export default function LoginPage() {
           border:none;
         }
       `}</style>
-      <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" crossOrigin="anonymous" async />
       <div className="wrap">
         <div className="container">
           <div className="logo-area">
