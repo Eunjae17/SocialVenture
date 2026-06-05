@@ -31,11 +31,13 @@ export default function LoginPage() {
   }, [router]);
 
   function handleKakaoLogin() {
-    if (typeof window !== 'undefined' && window.Kakao && window.Kakao.isInitialized()) {
-      window.Kakao.Auth.authorize({
-        redirectUri: window.location.origin + '/onboarding/login',
-      });
+    if (typeof window === 'undefined' || !window.Kakao) return;
+    if (!window.Kakao.isInitialized()) {
+      window.Kakao.init('4825517f3d957c77bda439ac0479327d');
     }
+    window.Kakao.Auth.authorize({
+      redirectUri: window.location.origin + '/onboarding/login',
+    });
   }
 
   return (
