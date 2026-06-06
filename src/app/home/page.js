@@ -68,9 +68,8 @@ export default function HomePage() {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [points, setPoints] = useState(0);
-  const [isExisting, setIsExisting] = useState(false);
-  const [showSoldModal, setShowSoldModal] = useState(false);
   const [challenges, setChallenges] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const nick = localStorage.getItem('userNickname') || '';
@@ -79,7 +78,6 @@ export default function HomePage() {
     setNickname(nick);
     setPoints(pts);
 
-    // Supabase에서 챌린지 불러오기
     supabase
       .from('challenges')
       .select('*')
@@ -87,9 +85,8 @@ export default function HomePage() {
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (error) console.error('챌린지 불러오기 오류:', error);
-        const list = data || [];
-        setChallenges(list);
-        setIsExisting(pts > 0 || list.length > 0);
+        setChallenges(data || []);
+        setLoading(false);
       });
   }, []);
 
@@ -97,9 +94,7 @@ export default function HomePage() {
     <>
       <style>{CSS}</style>
       <div id="app">
-        {!isExisting ? (
-          /* 신규 유저 홈 */
-          <div className="sc on" style={{background:'#f5f5f5'}}>
+        <div className="sc on" style={{background:'#f5f5f5'}}>
             <div className="sl" style={{background:'#f5f5f5'}}>
               {/* 헤더 */}
               <div style={{padding:'16px 20px', display:'flex', alignItems:'flex-start', justifyContent:'space-between'}}>
@@ -146,60 +141,6 @@ export default function HomePage() {
             </div>
             <BottomNav active="home" />
           </div>
-        ) : (
-          /* 기존 유저 홈 */
-          <div className="sc on" style={{position:'relative'}}>
-            <div className="sl">
-              <div className="h-top">
-                <div>
-                  <div className="h-name">안녕하세요, {nickname || '지우'}님!</div>
-                  <div className="h-sub">오늘도 챌린지에 도전해보세요</div>
-                </div>
-                <div className="pbadge">{points.toLocaleString()}P</div>
-              </div>
-              <div className="stitle">진행 중인 챌린지</div>
-              <div className="cscroll">
-                <div className="cc">
-                  <img className="cc-img" src="https://picsum.photos/seed/hood/296/180" alt="갈색 후드티" />
-                  <div className="cc-body">
-                    <div className="cc-name">갈색 후드티</div>
-                    <div className="cc-days">1일 / 5일</div>
-                    <div className="pbar"><div className="pfill" style={{width:'20%'}}></div></div>
-                  </div>
-                </div>
-                <div className="cc">
-                  <img className="cc-img" src="https://picsum.photos/seed/cord/296/180" alt="브라운 코듀로이 팬츠" />
-                  <div className="cc-body">
-                    <div className="cc-name">브라운 코듀로이 팬츠</div>
-                    <div className="cc-days">6일 / 7일</div>
-                    <div className="pbar"><div className="pfill" style={{width:'86%'}}></div></div>
-                  </div>
-                </div>
-              </div>
-              <div className="stitle">챌린지 기록</div>
-              <div className="hlist">
-                <div className="hc"><div className="hi"><div className="hn">갈색 후드티</div><div className="hs">5일 • 550P 획득 • 2026.04.25</div></div><span className="tag ti">진행중</span></div>
-                <div className="hc"><div className="hi"><div className="hn">브라운 코듀로이 팬츠</div><div className="hs">7일 • 840P 획득 • 2026.04.28</div></div><span className="tag te">연장중</span></div>
-                <div className="hc"><div className="hi"><div className="hn">스트라이프 티셔츠</div><div className="hs">7일 • 840P 획득 • 2026.04.15</div></div><span className="tag td">완료</span></div>
-                <div className="hc"><div className="hi"><div className="hn">블랙 팬츠</div><div className="hs">5일 • 550P 획득 • 2026.04.20</div></div><span className="tag td">완료</span></div>
-                <div className="hc"><div className="hi"><div className="hn">화이트 팬츠</div><div className="hs">3일 • 300P 획득 • 2026.04.10</div></div><span className="tag td">완료</span></div>
-              </div>
-            </div>
-            {showSoldModal && (
-              <div className="overlay on">
-                <div className="modal">
-                  <div style={{fontSize:'28px', marginBottom:'10px'}}>♻️</div>
-                  <div className="modal-title">{nickname || '지우'}님, 올린 옷이 판매됐어요!<br/>환경에도 한 걸음 도움이 됐어요 🌍</div>
-                  <div className="modal-btns" style={{marginTop:'20px'}}>
-                    <button className="modal-btn s" onClick={() => setShowSoldModal(false)}>홈으로 가기</button>
-                    <button className="modal-btn p" onClick={() => { setShowSoldModal(false); router.push('/market'); }}>마켓 둘러보기</button>
-                  </div>
-                </div>
-              </div>
-            )}
-            <BottomNav active="home" />
-          </div>
-        )}
       </div>
     </>
   );
