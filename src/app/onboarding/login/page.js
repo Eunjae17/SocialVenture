@@ -2,6 +2,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+const KAKAO_REST_API_KEY = '4825517f3d957c77bda439ac0479327d';
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -34,13 +36,26 @@ export default function LoginPage() {
   }, [router]);
 
   function handleKakaoLogin() {
-    if (typeof window === 'undefined' || !window.Kakao) return;
-    if (!window.Kakao.isInitialized()) {
-      window.Kakao.init('4825517f3d957c77bda439ac0479327d');
+    if (typeof window === 'undefined') return;
+
+    const redirectUri = window.location.origin + '/onboarding/login';
+
+    if (window.Kakao) {
+      if (!window.Kakao.isInitialized()) {
+        window.Kakao.init(KAKAO_REST_API_KEY);
+      }
+      window.Kakao.Auth.authorize({ redirectUri });
+      return;
     }
-    window.Kakao.Auth.authorize({
-      redirectUri: window.location.origin + '/onboarding/login',
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: KAKAO_REST_API_KEY,
+      redirect_uri: redirectUri,
+      prompt: 'login',
     });
+
+    window.location.assign(`https://kauth.kakao.com/oauth/authorize?${params}`);
   }
 
   return (
