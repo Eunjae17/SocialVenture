@@ -28,6 +28,7 @@ export async function POST(request) {
 
   const user = await userRes.json();
   const nickname = user.kakao_account?.profile?.nickname ?? null;
+  const kakaoId = String(user.id);
 
-  return Response.json({ nickname });
+  return Response.json({ nickname, kakaoId });
 }
