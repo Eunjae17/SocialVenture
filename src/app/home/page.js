@@ -86,17 +86,10 @@ export default function HomePage() {
             <div className="sl">
               <div className="h-top">
                 <div>
-                  <div className="h-name">안녕하세요, {nickname || '지우'}님!</div>
-                  <div className="h-sub">오늘도 챌린지에 도전해보세요</div>
+                  <div className="h-name">안녕하세요, {nickname || ''}님!</div>
+                  <div className="h-sub">첫 챌린지를 시작해보세요 🌿</div>
                 </div>
                 <div className="pbadge">0P</div>
-              </div>
-              <div className="stitle">진행 중인 챌린지</div>
-              <div style={{padding:'0 20px', marginBottom:'18px'}}>
-                <button className="cta" onClick={() => router.push('/challenge')}>
-                  <div className="cta-t">챌린지 등록하기</div>
-                  <div className="cta-i">👕</div>
-                </button>
               </div>
               <div className="stitle">마켓 추천 아이템</div>
               <div className="cloth-scroll">
@@ -116,12 +109,11 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              <div className="stitle">챌린지 기록</div>
-              <div className="hlist">
-                <div className="hc"><div className="hi"><div className="hn">화이트 린넨 셔츠</div><div className="hs">7일 • 840P 획득 • 2026.05.01</div></div><span className="tag td">완료</span></div>
-                <div className="hc"><div className="hi"><div className="hn">네이비 슬랙스</div><div className="hs">5일 • 550P 획득 • 2026.05.10</div></div><span className="tag td">완료</span></div>
-                <div className="hc"><div className="hi"><div className="hn">베이지 트렌치코트</div><div className="hs">7일 • 840P 획득 • 2026.05.18</div></div><span className="tag te">연장중</span></div>
-                <div className="hc"><div className="hi"><div className="hn">그레이 맨투맨</div><div className="hs">3일 • 300P 획득 • 2026.05.24</div></div><span className="tag ti">진행중</span></div>
+              <div style={{padding:'0 20px 28px'}}>
+                <button className="cta" onClick={() => router.push('/challenge')}>
+                  <div className="cta-t">첫 챌린지 등록하기<br/><span style={{fontSize:'12px',fontWeight:400,opacity:0.85}}>옷을 등록하고 포인트를 모아보세요</span></div>
+                  <div className="cta-i">👕</div>
+                </button>
               </div>
             </div>
             <BottomNav active="home" />
