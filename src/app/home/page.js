@@ -91,6 +91,12 @@ export default function HomePage() {
                 </div>
                 <div className="pbadge">0P</div>
               </div>
+              <div style={{padding:'0 20px 18px'}}>
+                <button className="cta" onClick={() => router.push('/challenge')}>
+                  <div className="cta-t">첫 챌린지 등록하기<br/><span style={{fontSize:'12px',fontWeight:400,opacity:0.85}}>옷을 등록하고 포인트를 모아보세요</span></div>
+                  <div className="cta-i">👕</div>
+                </button>
+              </div>
               <div className="stitle">마켓 추천 아이템</div>
               <div className="cloth-scroll">
                 {[
@@ -108,12 +114,6 @@ export default function HomePage() {
                     </div>
                   </div>
                 ))}
-              </div>
-              <div style={{padding:'0 20px 28px'}}>
-                <button className="cta" onClick={() => router.push('/challenge')}>
-                  <div className="cta-t">첫 챌린지 등록하기<br/><span style={{fontSize:'12px',fontWeight:400,opacity:0.85}}>옷을 등록하고 포인트를 모아보세요</span></div>
-                  <div className="cta-i">👕</div>
-                </button>
               </div>
             </div>
             <BottomNav active="home" />
