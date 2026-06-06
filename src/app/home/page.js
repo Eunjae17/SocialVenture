@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 
+const challengeCardImg = "https://www.figma.com/api/mcp/asset/8189164d-89ce-4ef6-940d-061b78d31314";
+
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -82,38 +84,35 @@ export default function HomePage() {
       <div id="app">
         {!isExisting ? (
           /* 신규 유저 홈 */
-          <div className="sc on">
-            <div className="sl">
-              <div className="h-top">
+          <div className="sc on" style={{background:'#f5f5f5'}}>
+            <div className="sl" style={{background:'#f5f5f5'}}>
+              {/* 헤더 */}
+              <div style={{padding:'16px 20px', display:'flex', alignItems:'flex-start', justifyContent:'space-between'}}>
                 <div>
-                  <div className="h-name">안녕하세요, {nickname || ''}님!</div>
-                  <div className="h-sub">첫 챌린지를 시작해보세요 🌿</div>
+                  <div style={{fontSize:'20px', fontWeight:700, color:'#0a0a0a', letterSpacing:'-0.45px'}}>안녕하세요, {nickname || ''}님!</div>
+                  <div style={{fontSize:'14px', color:'#6a7282', marginTop:'2px', letterSpacing:'-0.15px'}}>오늘도 챌린지에 도전해보세요</div>
                 </div>
-                <div className="pbadge">0P</div>
+                <div style={{background:'#dcfce7', color:'#008236', borderRadius:'999px', padding:'6px 12px', fontSize:'14px', fontWeight:500}}>0P</div>
               </div>
-              <div style={{padding:'0 20px 18px'}}>
-                <button className="cta" onClick={() => router.push('/challenge')}>
-                  <div className="cta-t">첫 챌린지 등록하기<br/><span style={{fontSize:'12px',fontWeight:400,opacity:0.85}}>옷을 등록하고 포인트를 모아보세요</span></div>
-                  <div className="cta-i">👕</div>
+
+              {/* 진행 중인 챌린지 */}
+              <div style={{padding:'0 20px', marginBottom:'20px'}}>
+                <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>진행 중인 챌린지</div>
+                <button
+                  onClick={() => router.push('/challenge')}
+                  style={{background:'#00C950', borderRadius:'10px', border:'none', cursor:'pointer', padding:'12px', width:'144px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-end', gap:'8px'}}
+                >
+                  <img src={challengeCardImg} alt="챌린지 등록" style={{width:'101px', height:'90px', objectFit:'cover'}} />
+                  <span style={{fontSize:'14px', fontWeight:500, color:'#fff', letterSpacing:'-0.15px'}}>챌린지 등록하기</span>
                 </button>
               </div>
-              <div className="stitle">마켓 추천 아이템</div>
-              <div className="cloth-scroll">
-                {[
-                  {seed:'cloth1', name:'베이지 린넨 셔츠', pts:'1,200P'},
-                  {seed:'cloth2', name:'화이트 오버핏 티', pts:'800P'},
-                  {seed:'cloth3', name:'블루 데님 자켓', pts:'2,100P'},
-                  {seed:'cloth4', name:'올리브 카고 팬츠', pts:'1,500P'},
-                  {seed:'cloth5', name:'그레이 후드 집업', pts:'1,800P'},
-                ].map(item => (
-                  <div key={item.seed} className="cloth-card" onClick={() => router.push('/market')}>
-                    <img src={`https://picsum.photos/seed/${item.seed}/240/280`} alt={item.name} />
-                    <div className="cloth-card-body">
-                      <div className="cloth-card-name">{item.name}</div>
-                      <div className="cloth-card-pts">{item.pts}</div>
-                    </div>
-                  </div>
-                ))}
+
+              {/* 챌린지 기록 */}
+              <div style={{padding:'0 20px'}}>
+                <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>챌린지 기록</div>
+                <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'80px 0', color:'#6a7282', fontSize:'14px'}}>
+                  아직 도전 중인 챌린지가 없어요
+                </div>
               </div>
             </div>
             <BottomNav active="home" />
