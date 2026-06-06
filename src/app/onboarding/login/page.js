@@ -23,6 +23,9 @@ export default function LoginPage() {
         if (data.nickname) {
           localStorage.setItem('userNickname', data.nickname);
         }
+        if (data.kakaoId) {
+          localStorage.setItem('kakaoId', data.kakaoId);
+        }
         router.push('/home');
       })
       .catch(() => {

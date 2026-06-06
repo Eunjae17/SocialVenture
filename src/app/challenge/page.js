@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
@@ -215,19 +216,22 @@ export default function ChallengePage() {
     setStep(3);
   }
 
-  function submitChallenge() {
-    // localStorage에 챌린지 저장
-    const newChallenge = {
-      id: Date.now(),
+  async function submitChallenge() {
+    const kakaoId = localStorage.getItem('kakaoId') || 'anonymous';
+    const nickname = localStorage.getItem('userNickname') || '';
+
+    // Supabase에 저장
+    const { error } = await supabase.from('challenges').insert({
+      kakao_id: kakaoId,
+      nickname: nickname,
       name: itemName,
       days: days,
       pts: DAY_PTS[days],
-      startDate: new Date().toISOString().slice(0, 10),
-      status: 'active', // active | done
-      photo: capturedPhoto || null,
-    };
-    const existing = JSON.parse(localStorage.getItem('challenges') || '[]');
-    localStorage.setItem('challenges', JSON.stringify([newChallenge, ...existing]));
+      status: 'active',
+      start_date: new Date().toISOString().slice(0, 10),
+    });
+
+    if (error) console.error('챌린지 저장 오류:', error);
 
     setStep(4);
     setTimeout(() => setPfillWidth('4%'), 600);

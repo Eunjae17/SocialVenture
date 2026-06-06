@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
+import { supabase } from '@/lib/supabase';
 
 const challengeCardImg = "https://www.figma.com/api/mcp/asset/8189164d-89ce-4ef6-940d-061b78d31314";
 
@@ -74,11 +75,22 @@ export default function HomePage() {
   useEffect(() => {
     const nick = localStorage.getItem('userNickname') || '';
     const pts = parseInt(localStorage.getItem('userPoints') || '0');
-    const saved = JSON.parse(localStorage.getItem('challenges') || '[]');
+    const kakaoId = localStorage.getItem('kakaoId') || 'anonymous';
     setNickname(nick);
     setPoints(pts);
-    setChallenges(saved);
-    setIsExisting(pts > 0 || saved.length > 0);
+
+    // Supabase에서 챌린지 불러오기
+    supabase
+      .from('challenges')
+      .select('*')
+      .eq('kakao_id', kakaoId)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) console.error('챌린지 불러오기 오류:', error);
+        const list = data || [];
+        setChallenges(list);
+        setIsExisting(pts > 0 || list.length > 0);
+      });
   }, []);
 
   return (
