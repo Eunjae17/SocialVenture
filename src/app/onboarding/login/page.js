@@ -66,7 +66,8 @@ export default function LoginPage() {
         .wrap { width:100%; height:100vh; display:flex; align-items:center; justify-content:center; background:#00C950; }
         .container {
           width:100%;
-          max-width:393px;
+          max-width:430px;
+          margin:0 auto;
           height:100vh;
           display:flex;
           flex-direction:column;
