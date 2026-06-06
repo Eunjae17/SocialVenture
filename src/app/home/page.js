@@ -4,65 +4,20 @@ import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import { supabase } from '@/lib/supabase';
 
-const challengeCardImg = "https://www.figma.com/api/mcp/asset/8189164d-89ce-4ef6-940d-061b78d31314";
+const registerImg = "https://www.figma.com/api/mcp/asset/a7f3fd68-90b1-43ee-8f94-e7ee384151d7";
 
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --g:#00C950;--gl:#E8FFF1;--gd:#00A040;--gb:#F0FDF4;
-  --g1:#F8FAFC;--g2:#E2E8F0;--g3:#CBD5E1;--g4:#94A3B8;--g5:#64748B;--g7:#334155;--g9:#0F172A;
-  --w:#fff;--r:14px;--rs:10px
+function getDaysElapsed(startDate) {
+  const start = new Date(startDate);
+  const now = new Date();
+  return Math.max(1, Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1);
 }
-body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:24px 0 40px}
-#app{width:390px;min-height:844px;background:var(--w);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.3)}
-.sc{display:none;flex-direction:column;height:844px;background:var(--w);overflow:hidden}
-.sc.on{display:flex}
-.sl{overflow-y:auto;overflow-x:hidden;flex:1}
-.sl::-webkit-scrollbar{display:none}
-.h-top{display:flex;justify-content:space-between;align-items:flex-start;padding:22px 20px 16px}
-.h-name{font-size:20px;font-weight:800;color:var(--g9)}
-.h-sub{font-size:13px;color:var(--g5);margin-top:3px}
-.pbadge{background:var(--gl);color:var(--gd);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700}
-.stitle{font-size:15px;font-weight:700;color:var(--g9);padding:0 20px;margin-bottom:10px}
-.cta{margin:0 20px 18px;background:var(--g);border-radius:var(--r);padding:16px 20px;cursor:pointer;min-height:90px;display:flex;align-items:center;justify-content:space-between;border:none;width:calc(100% - 40px)}
-.cta-t{color:#fff;font-size:15px;font-weight:700;text-align:left}
-.cta-i{font-size:40px}
-.cscroll{display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px;margin-bottom:18px}
-.cscroll::-webkit-scrollbar{display:none}
-.cc{min-width:148px;background:var(--g1);border-radius:var(--r);border:1px solid var(--g2);overflow:hidden;cursor:pointer;flex-shrink:0}
-.cc-img{width:100%;height:90px;object-fit:cover;display:block}
-.cc-body{padding:8px 10px 10px}
-.cc-name{font-size:12px;font-weight:700;color:var(--g9)}
-.cc-days{font-size:11px;color:var(--g5);margin:3px 0 6px}
-.pbar{height:4px;background:var(--g2);border-radius:2px;overflow:hidden}
-.pfill{height:100%;background:var(--g);border-radius:2px}
-.cloth-scroll{display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px;margin-bottom:18px}
-.cloth-scroll::-webkit-scrollbar{display:none}
-.cloth-card{min-width:120px;background:var(--g1);border-radius:var(--r);border:1px solid var(--g2);overflow:hidden;cursor:pointer;flex-shrink:0}
-.cloth-card img{width:100%;height:140px;object-fit:cover;display:block}
-.cloth-card-body{padding:8px 10px 10px}
-.cloth-card-name{font-size:12px;font-weight:700;color:var(--g9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cloth-card-pts{font-size:12px;font-weight:800;color:var(--g);margin-top:2px}
-.hlist{padding:0 20px;display:flex;flex-direction:column;gap:8px;padding-bottom:16px}
-.hc{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--g1);border-radius:var(--rs);border:1px solid var(--g2)}
-.hi{flex:1}
-.hn{font-size:13px;font-weight:700;color:var(--g9)}
-.hs{font-size:11px;color:var(--g5);margin-top:2px}
-.tag{padding:4px 9px;border-radius:20px;font-size:11px;font-weight:700;flex-shrink:0;white-space:nowrap}
-.ti{background:#DBEAFE;color:#1D4ED8}
-.te{background:#FEF3C7;color:#D97706}
-.td{background:var(--gl);color:var(--gd)}
-.overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
-.overlay.on{display:flex}
-.modal{background:#fff;border-radius:20px;padding:28px 24px;width:100%;text-align:center}
-.modal-title{font-size:16px;font-weight:700;color:var(--g9);margin-bottom:8px}
-.modal-sub{font-size:13px;color:var(--g5);line-height:1.5;margin-bottom:20px}
-.modal-btns{display:flex;gap:10px}
-.modal-btn{flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;border:none}
-.modal-btn.s{background:var(--g2);color:var(--g7)}
-.modal-btn.p{background:var(--g);color:#fff}
-`;
+
+function getStatusTag(c) {
+  const elapsed = getDaysElapsed(c.start_date);
+  if (elapsed >= c.days) return { label: '완료', bg: '#dcfce7', color: '#008236' };
+  if (elapsed >= c.days * 0.8) return { label: '연장중', bg: '#ffedd4', color: '#ca3500' };
+  return { label: '진행중', bg: '#dbeafe', color: '#1447e6' };
+}
 
 export default function HomePage() {
   const router = useRouter();
@@ -74,15 +29,11 @@ export default function HomePage() {
   useEffect(() => {
     const nick = localStorage.getItem('userNickname') || '';
     const pts = parseInt(localStorage.getItem('userPoints') || '0');
-    const kakaoId = localStorage.getItem('kakaoId'); // 없으면 null
+    const kakaoId = localStorage.getItem('kakaoId');
     setNickname(nick);
     setPoints(pts);
 
-    // 로그인 안 된 경우 챌린지 불러오지 않음
-    if (!kakaoId) {
-      setLoading(false);
-      return;
-    }
+    if (!kakaoId) { setLoading(false); return; }
 
     supabase
       .from('challenges')
@@ -96,57 +47,101 @@ export default function HomePage() {
       });
   }, []);
 
+  const activeChals = challenges.filter(c => getDaysElapsed(c.start_date) < c.days);
+
   return (
     <>
-      <style>{CSS}</style>
-      <div id="app">
-        <div className="sc on" style={{background:'#f5f5f5'}}>
-            <div className="sl" style={{background:'#f5f5f5'}}>
-              {/* 헤더 */}
-              <div style={{padding:'16px 20px', display:'flex', alignItems:'flex-start', justifyContent:'space-between'}}>
-                <div>
-                  <div style={{fontSize:'20px', fontWeight:700, color:'#0a0a0a', letterSpacing:'-0.45px'}}>안녕하세요, {nickname || ''}님!</div>
-                  <div style={{fontSize:'14px', color:'#6a7282', marginTop:'2px', letterSpacing:'-0.15px'}}>오늘도 챌린지에 도전해보세요</div>
-                </div>
-                <div style={{background:'#dcfce7', color:'#008236', borderRadius:'999px', padding:'6px 12px', fontSize:'14px', fontWeight:500}}>0P</div>
-              </div>
+      <style>{`
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Inter','Noto Sans KR',sans-serif; background:#f5f5f5; }
+        .sl { overflow-y:auto; overflow-x:hidden; flex:1; }
+        .sl::-webkit-scrollbar { display:none; }
+        .cscroll { display:flex; gap:12px; overflow-x:auto; padding-bottom:4px; }
+        .cscroll::-webkit-scrollbar { display:none; }
+      `}</style>
+      <div style={{background:'#f5f5f5', minHeight:'100vh', maxWidth:'393px', margin:'0 auto', display:'flex', flexDirection:'column'}}>
+        <div className="sl" style={{flex:1, paddingBottom:'80px'}}>
 
-              {/* 진행 중인 챌린지 */}
-              <div style={{padding:'0 20px', marginBottom:'20px'}}>
-                <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>진행 중인 챌린지</div>
-                <button
-                  onClick={() => router.push('/challenge')}
-                  style={{background:'#00C950', borderRadius:'10px', border:'none', cursor:'pointer', padding:'12px', width:'144px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-end', gap:'8px'}}
-                >
-                  <img src={challengeCardImg} alt="챌린지 등록" style={{width:'101px', height:'90px', objectFit:'cover'}} />
-                  <span style={{fontSize:'14px', fontWeight:500, color:'#fff', letterSpacing:'-0.15px'}}>챌린지 등록하기</span>
-                </button>
-              </div>
+          {/* 헤더 */}
+          <div style={{padding:'55px 20px 16px', display:'flex', alignItems:'flex-start', justifyContent:'space-between'}}>
+            <div>
+              <div style={{fontSize:'20px', fontWeight:600, color:'#0a0a0a', letterSpacing:'-0.45px'}}>안녕하세요, {nickname || ''}님!</div>
+              <div style={{fontSize:'14px', color:'#6a7282', marginTop:'2px', letterSpacing:'-0.15px'}}>오늘도 챌린지에 도전해보세요</div>
+            </div>
+            <div style={{background:'#dcfce7', color:'#008236', borderRadius:'999px', padding:'6px 14px', fontSize:'14px', fontWeight:400, whiteSpace:'nowrap'}}>
+              {points > 0 ? `${points.toLocaleString()}P` : '0P'}
+            </div>
+          </div>
 
-              {/* 챌린지 기록 */}
-              <div style={{padding:'0 20px 24px'}}>
-                <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>챌린지 기록</div>
-                {challenges.length === 0 ? (
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 0', color:'#6a7282', fontSize:'14px'}}>
-                    아직 도전 중인 챌린지가 없어요
-                  </div>
-                ) : (
-                  <div className="hlist">
-                    {challenges.map(c => (
-                      <div key={c.id} className="hc">
-                        <div className="hi">
-                          <div className="hn">{c.name}</div>
-                          <div className="hs">{c.days}일 • {c.pts}P 목표 • {c.startDate}</div>
-                        </div>
-                        <span className="tag ti">진행중</span>
+          {/* 챌린지 등록 배너 */}
+          <div style={{padding:'0 20px 16px'}}>
+            <button
+              onClick={() => router.push('/challenge')}
+              style={{width:'100%', background:'#00C950', border:'1px solid #e5e7eb', borderRadius:'10px', cursor:'pointer', padding:'11px 13px', display:'flex', alignItems:'center', justifyContent:'center', gap:'16px'}}
+            >
+              <img src={registerImg} alt="챌린지 등록" style={{width:'101px', height:'90px', objectFit:'cover'}} />
+              <span style={{fontSize:'14px', fontWeight:500, color:'#fff', letterSpacing:'-0.15px'}}>챌린지 등록하기</span>
+            </button>
+          </div>
+
+          {/* 진행 중인 챌린지 */}
+          {activeChals.length > 0 && (
+            <div style={{padding:'0 20px 16px'}}>
+              <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>진행 중인 챌린지</div>
+              <div className="cscroll">
+                {activeChals.map(c => {
+                  const elapsed = getDaysElapsed(c.start_date);
+                  const progress = Math.min(100, Math.round((elapsed / c.days) * 100));
+                  return (
+                    <div key={c.id} style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', minWidth:'144px', flexShrink:0, padding:'13px 13px 8px'}}>
+                      <div style={{width:'100%', height:'40px', background:'#e5e7eb', borderRadius:'10px', marginBottom:'8px', overflow:'hidden'}}>
+                        {c.photo_url && <img src={c.photo_url} alt={c.name} style={{width:'100%', height:'100%', objectFit:'cover'}} />}
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div style={{fontSize:'14px', color:'#0a0a0a', marginBottom:'4px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{c.name}</div>
+                      <div style={{fontSize:'12px', color:'#6a7282', marginBottom:'6px'}}>{elapsed}일 / {c.days}일</div>
+                      <div style={{background:'#e5e7eb', borderRadius:'999px', height:'6px', overflow:'hidden'}}>
+                        <div style={{background:'#00C950', height:'6px', borderRadius:'999px', width:`${progress}%`}} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <BottomNav active="home" />
+          )}
+
+          {/* 챌린지 기록 */}
+          <div style={{padding:'0 20px 24px'}}>
+            <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>챌린지 기록</div>
+            {challenges.length === 0 ? (
+              <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 0', color:'#6a7282', fontSize:'14px'}}>
+                아직 도전 중인 챌린지가 없어요
+              </div>
+            ) : (
+              <div style={{display:'flex', flexDirection:'column', gap:'9px'}}>
+                {challenges.map(c => {
+                  const tag = getStatusTag(c);
+                  return (
+                    <div key={c.id} style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px 20px'}}>
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px'}}>
+                        <span style={{fontSize:'14px', color:'#0a0a0a', letterSpacing:'-0.15px'}}>{c.name}</span>
+                        <span style={{background:tag.bg, color:tag.color, borderRadius:'999px', padding:'2px 8px', fontSize:'12px', whiteSpace:'nowrap'}}>{tag.label}</span>
+                      </div>
+                      <div style={{fontSize:'12px', color:'#6a7282', display:'flex', gap:'6px', alignItems:'center'}}>
+                        <span>{c.days}일</span>
+                        <span>•</span>
+                        <span>{c.pts}P 획득</span>
+                        <span>•</span>
+                        <span>{c.start_date}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
+
+        </div>
+        <BottomNav active="home" />
       </div>
     </>
   );
