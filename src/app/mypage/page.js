@@ -62,7 +62,6 @@ export default function MypagePage() {
             </div>
             <div className="profile-info">
               <div className="profile-name">{nickname}님</div>
-              <div className="profile-email">jiwoo@ewhain.net</div>
             </div>
           </div>
           <div className="stats-row">
