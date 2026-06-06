@@ -1,13 +1,19 @@
 'use client'
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const illustrationImg = "https://www.figma.com/api/mcp/asset/81068431-7aa8-4e61-b166-d173315243bf";
 
 export default function SplashPage() {
+  const redirected = useRef(false);
+
   useEffect(() => {
+    if (redirected.current) return;
     const timer = setTimeout(() => {
-      window.location.href = '/onboarding/login';
-    }, 2500);
+      if (!redirected.current) {
+        redirected.current = true;
+        window.location.href = '/onboarding/login';
+      }
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -61,7 +67,7 @@ export default function SplashPage() {
           border-radius:3px;
         }
       `}</style>
-      <div className="splash-wrap">
+      <div className="splash-wrap" onClick={() => { window.location.href = '/onboarding/login'; }}>
         <div className="splash-title">옷옷</div>
         <div className="splash-sub">옷에서 옷으로 이어지는 순환</div>
         <img
