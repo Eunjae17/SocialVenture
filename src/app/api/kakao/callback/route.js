@@ -1,3 +1,5 @@
+import { supabase } from '@/lib/supabase';
+
 export async function POST(request) {
   const { code, redirectUri } = await request.json();
 
@@ -29,6 +31,11 @@ export async function POST(request) {
   const user = await userRes.json();
   const nickname = user.kakao_account?.profile?.nickname ?? null;
   const kakaoId = String(user.id);
+
+  await supabase.from('profiles').upsert(
+    { kakao_id: kakaoId, nickname: nickname ?? '사용자' },
+    { onConflict: 'kakao_id', ignoreDuplicates: false }
+  );
 
   return Response.json({ nickname, kakaoId });
 }

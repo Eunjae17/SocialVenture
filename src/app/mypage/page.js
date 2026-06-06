@@ -1,12 +1,8 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
-
-function getStoredNickname() {
-  if (typeof window === 'undefined') return '지우';
-  return localStorage.getItem('userNickname') || '지우';
-}
+import { supabase } from '@/lib/supabase';
 
 const CSS = `
 .mypage-screen { background:#F9FAFB; }
@@ -38,7 +34,28 @@ const CSS = `
 
 export default function MypagePage() {
   const router = useRouter();
-  const [nickname] = useState(getStoredNickname);
+  const [nickname, setNickname] = useState('');
+  const [stats, setStats] = useState({ challenges: 0, points: 0, purchases: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setNickname(localStorage.getItem('userNickname') || '');
+    const kakaoId = localStorage.getItem('kakaoId');
+    if (!kakaoId) { setLoading(false); return; }
+
+    Promise.all([
+      supabase.from('profiles').select('points').eq('kakao_id', kakaoId).single(),
+      supabase.from('challenge_completions').select('id', { count: 'exact', head: true }).eq('user_kakao_id', kakaoId),
+      supabase.from('purchases').select('id', { count: 'exact', head: true }).eq('user_kakao_id', kakaoId),
+    ]).then(([profileRes, challengeRes, purchaseRes]) => {
+      setStats({
+        challenges: challengeRes.count ?? 0,
+        points: profileRes.data?.points ?? 0,
+        purchases: purchaseRes.count ?? 0,
+      });
+      setLoading(false);
+    });
+  }, []);
 
   function logout() {
     try { localStorage.removeItem('userNickname'); } catch {}
@@ -64,21 +81,21 @@ export default function MypagePage() {
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
               </div>
               <div className="stat-label">완료한 챌린지</div>
-              <div className="stat-value">12개</div>
+              <div className="stat-value">{loading ? '...' : `${stats.challenges}개`}</div>
             </div>
             <div className="stat-item">
               <div className="stat-icon">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
               </div>
               <div className="stat-label">획득 포인트</div>
-              <div className="stat-value">2,450P</div>
+              <div className="stat-value">{loading ? '...' : `${stats.points.toLocaleString()}P`}</div>
             </div>
             <div className="stat-item">
               <div className="stat-icon">
                 <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
               </div>
               <div className="stat-label">구매한 아이템</div>
-              <div className="stat-value">5개</div>
+              <div className="stat-value">{loading ? '...' : `${stats.purchases}개`}</div>
             </div>
           </div>
         </div>
