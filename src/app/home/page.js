@@ -74,9 +74,15 @@ export default function HomePage() {
   useEffect(() => {
     const nick = localStorage.getItem('userNickname') || '';
     const pts = parseInt(localStorage.getItem('userPoints') || '0');
-    const kakaoId = localStorage.getItem('kakaoId') || 'anonymous';
+    const kakaoId = localStorage.getItem('kakaoId'); // 없으면 null
     setNickname(nick);
     setPoints(pts);
+
+    // 로그인 안 된 경우 챌린지 불러오지 않음
+    if (!kakaoId) {
+      setLoading(false);
+      return;
+    }
 
     supabase
       .from('challenges')

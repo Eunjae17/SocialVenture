@@ -217,8 +217,13 @@ export default function ChallengePage() {
   }
 
   async function submitChallenge() {
-    const kakaoId = localStorage.getItem('kakaoId') || 'anonymous';
+    const kakaoId = localStorage.getItem('kakaoId');
     const nickname = localStorage.getItem('userNickname') || '';
+
+    if (!kakaoId) {
+      showToastMsg('로그인이 필요해요');
+      return;
+    }
 
     // Supabase에 저장
     const { error } = await supabase.from('challenges').insert({
