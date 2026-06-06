@@ -287,7 +287,7 @@ export default function ChallengePage() {
         <div className={`sc${step === 2 ? ' on' : ''}`}>
           <div className="tb">
             <button className="bk" onClick={() => goBack(2)}>‹</button>
-            <h2>상품 사진 찍기</h2>
+            <h2>챌린지 등록</h2>
           </div>
           <div className="step-bar">
             <div className="step-dot on"></div>
@@ -318,11 +318,10 @@ export default function ChallengePage() {
                   </div>
                 </div>
                 <div className="photo-tips" style={{margin:'0 20px'}}>
-                  <p>📌 촬영 팁</p>
+                  <p>📌 촬영 가이드</p>
                   <ul>
                     <li>밝은 곳에서 옷이 잘 보이게 찍어요</li>
                     <li>옷의 색상·소재가 잘 나오면 더 좋아요</li>
-                    <li>챌린지 등록 후에는 매일 착용 인증을 해요</li>
                   </ul>
                 </div>
               </div>
