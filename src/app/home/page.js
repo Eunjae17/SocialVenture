@@ -69,13 +69,16 @@ export default function HomePage() {
   const [points, setPoints] = useState(0);
   const [isExisting, setIsExisting] = useState(false);
   const [showSoldModal, setShowSoldModal] = useState(false);
+  const [challenges, setChallenges] = useState([]);
 
   useEffect(() => {
     const nick = localStorage.getItem('userNickname') || '';
     const pts = parseInt(localStorage.getItem('userPoints') || '0');
+    const saved = JSON.parse(localStorage.getItem('challenges') || '[]');
     setNickname(nick);
     setPoints(pts);
-    setIsExisting(pts > 0);
+    setChallenges(saved);
+    setIsExisting(pts > 0 || saved.length > 0);
   }, []);
 
   return (
@@ -108,11 +111,25 @@ export default function HomePage() {
               </div>
 
               {/* 챌린지 기록 */}
-              <div style={{padding:'0 20px'}}>
+              <div style={{padding:'0 20px 24px'}}>
                 <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>챌린지 기록</div>
-                <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'80px 0', color:'#6a7282', fontSize:'14px'}}>
-                  아직 도전 중인 챌린지가 없어요
-                </div>
+                {challenges.length === 0 ? (
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 0', color:'#6a7282', fontSize:'14px'}}>
+                    아직 도전 중인 챌린지가 없어요
+                  </div>
+                ) : (
+                  <div className="hlist">
+                    {challenges.map(c => (
+                      <div key={c.id} className="hc">
+                        <div className="hi">
+                          <div className="hn">{c.name}</div>
+                          <div className="hs">{c.days}일 • {c.pts}P 목표 • {c.startDate}</div>
+                        </div>
+                        <span className="tag ti">진행중</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <BottomNav active="home" />

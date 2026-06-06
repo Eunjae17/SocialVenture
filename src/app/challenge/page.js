@@ -216,6 +216,19 @@ export default function ChallengePage() {
   }
 
   function submitChallenge() {
+    // localStorage에 챌린지 저장
+    const newChallenge = {
+      id: Date.now(),
+      name: itemName,
+      days: days,
+      pts: DAY_PTS[days],
+      startDate: new Date().toISOString().slice(0, 10),
+      status: 'active', // active | done
+      photo: capturedPhoto || null,
+    };
+    const existing = JSON.parse(localStorage.getItem('challenges') || '[]');
+    localStorage.setItem('challenges', JSON.stringify([newChallenge, ...existing]));
+
     setStep(4);
     setTimeout(() => setPfillWidth('4%'), 600);
   }
