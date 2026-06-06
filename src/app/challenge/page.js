@@ -4,16 +4,8 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --g:#00C950;--gl:#E8FFF1;--gd:#00A040;--gb:#F0FDF4;
-  --g1:#F8FAFC;--g2:#E2E8F0;--g3:#CBD5E1;--g4:#94A3B8;--g5:#64748B;--g7:#334155;--g9:#0F172A;
-  --w:#fff;--r:14px;--rs:10px
-}
-body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:24px 0 40px}
-#app{width:390px;min-height:844px;background:var(--w);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.3)}
-.sc{display:none;flex-direction:column;height:844px;background:var(--w);overflow:hidden}
+#app{width:100%;max-width:430px;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;margin:0 auto;background:var(--w);overflow:hidden;position:relative}
+.sc{display:none;flex-direction:column;height:100dvh;background:var(--w);overflow:hidden}
 .sc.on{display:flex}
 .sl{overflow-y:auto;overflow-x:hidden;flex:1}
 .sl::-webkit-scrollbar{display:none}
@@ -27,7 +19,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justi
 .btn:active{opacity:.85}
 .btn.wh{background:var(--w);color:var(--g9);border:1.5px solid var(--g2)}
 .btn:disabled{background:var(--g2);color:var(--g4);cursor:not-allowed}
-.bwrap{padding:12px 20px 28px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.bwrap{padding:12px 20px calc(20px + env(safe-area-inset-bottom));flex-shrink:0;display:flex;flex-direction:column;gap:10px}
 .form-section{padding:24px 20px 0}
 .form-label{font-size:13px;font-weight:600;color:var(--g7);margin-bottom:8px}
 .form-input{width:100%;border:1.5px solid var(--g2);border-radius:12px;padding:14px 16px;font-size:15px;font-family:'Noto Sans KR',sans-serif;color:var(--g9);outline:none;transition:border .2s}
@@ -151,9 +143,19 @@ export default function ChallengePage() {
   }
 
   useEffect(() => {
-    if (step === 2 && !capturedPhoto) startCamera();
-    return () => { if (step !== 2) stopCamera(); };
-  }, [step]);
+    if (step !== 2 || capturedPhoto) return undefined;
+
+    const timer = window.setTimeout(() => {
+      startCamera();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      stopCamera();
+    };
+    // Camera startup intentionally responds to step transitions only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, capturedPhoto]);
 
   function goStep2() {
     if (!itemName.trim()) { showToastMsg('옷 이름을 입력해주세요'); return; }

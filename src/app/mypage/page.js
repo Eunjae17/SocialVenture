@@ -1,16 +1,15 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import BottomNav from '@/components/BottomNav';
+import AppShell from '@/components/AppShell';
+
+function getStoredNickname() {
+  if (typeof window === 'undefined') return '지우';
+  return localStorage.getItem('userNickname') || '지우';
+}
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-* {
-  margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-}
-html, body { width:100%; min-height:100vh; background:#F9FAFB; color:#0A0A0A; }
-.app { width:100%; max-width:393px; min-height:100vh; margin:0 auto; background:#F9FAFB; position:relative; padding-bottom:80px; }
+.mypage-screen { background:#F9FAFB; }
 .profile-section { background:white; padding:24px 24px 28px; }
 .profile-row { display:flex; align-items:center; gap:20px; margin-bottom:28px; }
 .avatar { width:80px; height:80px; border-radius:50%; background:#DCFCE7; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -39,12 +38,7 @@ html, body { width:100%; min-height:100vh; background:#F9FAFB; color:#0A0A0A; }
 
 export default function MypagePage() {
   const router = useRouter();
-  const [nickname, setNickname] = useState('지우');
-
-  useEffect(() => {
-    const nick = localStorage.getItem('userNickname');
-    if (nick) setNickname(nick);
-  }, []);
+  const [nickname] = useState(getStoredNickname);
 
   function logout() {
     try { localStorage.removeItem('userNickname'); } catch {}
@@ -54,7 +48,7 @@ export default function MypagePage() {
   return (
     <>
       <style>{CSS}</style>
-      <div className="app">
+      <AppShell active="mypage" className="mypage-screen" contentClassName="mypage-screen">
         <div className="profile-section">
           <div className="profile-row">
             <div className="avatar">
@@ -123,9 +117,7 @@ export default function MypagePage() {
         <div className="logout-section">
           <button className="logout-btn" onClick={logout}>로그아웃</button>
         </div>
-
-        <BottomNav active="mypage" />
-      </div>
+      </AppShell>
     </>
   );
 }

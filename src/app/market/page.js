@@ -1,21 +1,16 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import BottomNav from '@/components/BottomNav';
+import AppShell from '@/components/AppShell';
+
+function getStoredPoints() {
+  if (typeof window === 'undefined') return 2450;
+  const pts = parseInt(localStorage.getItem('userPoints') || '0');
+  return pts > 0 ? pts : 2450;
+}
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --g:#00C950;--gl:#E8FFF1;--gd:#00A040;--gb:#F0FDF4;
-  --g1:#F8FAFC;--g2:#E2E8F0;--g3:#CBD5E1;--g4:#94A3B8;--g5:#64748B;--g7:#334155;--g9:#0F172A;
-  --w:#fff;--r:14px;--rs:10px
-}
-body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:24px 0 40px}
-#app{width:390px;min-height:844px;background:var(--w);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.3)}
-.sc{display:flex;flex-direction:column;height:844px;background:var(--w);overflow:hidden}
-.sl{overflow-y:auto;overflow-x:hidden;flex:1}
-.sl::-webkit-scrollbar{display:none}
+.market-screen{background:var(--w)}
 .mkt-search-area{padding:12px 20px 0;flex-shrink:0}
 .mkt-search-box{display:flex;align-items:center;gap:8px;background:var(--g1);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--g4);margin-bottom:12px}
 .mkt-filter{margin-left:auto;font-size:18px;cursor:pointer}
@@ -49,18 +44,12 @@ const CATS = ['전체', '상의', '하의', '아우터', '원피스', '액세서
 export default function MarketPage() {
   const router = useRouter();
   const [activeCat, setActiveCat] = useState('전체');
-  const [points, setPoints] = useState(2450);
-
-  useEffect(() => {
-    const pts = parseInt(localStorage.getItem('userPoints') || '0');
-    if (pts > 0) setPoints(pts);
-  }, []);
+  const [points] = useState(getStoredPoints);
 
   return (
     <>
       <style>{CSS}</style>
-      <div id="app">
-        <div className="sc">
+      <AppShell active="market" className="market-screen" contentClassName="market-screen">
           <div className="mkt-search-area">
             <div className="mkt-search-box">🔍&nbsp; 찾고 싶은 아이템을 검색하세요<span className="mkt-filter">⚙️</span></div>
           </div>
@@ -73,7 +62,6 @@ export default function MarketPage() {
             <span>현재 보유 포인트</span>
             <span>{points.toLocaleString()}P</span>
           </div>
-          <div className="sl">
             <div className="mgrid">
               {MARKET_ITEMS.map(item => (
                 <div key={item.id} className="mcard" onClick={() => router.push(`/market/${item.id}`)}>
@@ -86,10 +74,7 @@ export default function MarketPage() {
                 </div>
               ))}
             </div>
-          </div>
-          <BottomNav active="market" />
-        </div>
-      </div>
+      </AppShell>
     </>
   );
 }

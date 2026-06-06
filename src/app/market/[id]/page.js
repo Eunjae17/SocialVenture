@@ -1,24 +1,18 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --g:#00C950;--gl:#E8FFF1;--gd:#00A040;--gb:#F0FDF4;
-  --g1:#F8FAFC;--g2:#E2E8F0;--g3:#CBD5E1;--g4:#94A3B8;--g5:#64748B;--g7:#334155;--g9:#0F172A;
-  --w:#fff;--r:14px;--rs:10px
-}
-body{font-family:'Noto Sans KR',sans-serif;background:#C8C8C8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:24px 0 40px}
-#app{width:390px;min-height:844px;background:var(--w);border-radius:44px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.3)}
-.sc{display:flex;flex-direction:column;height:844px;background:var(--w);overflow:hidden}
+#app{width:100%;max-width:430px;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;margin:0 auto;background:var(--w);overflow:hidden;position:relative}
+.sc{display:flex;flex-direction:column;height:100dvh;background:var(--w);overflow:hidden}
+.sl{overflow-y:auto;overflow-x:hidden;flex:1;min-height:0}
+.sl::-webkit-scrollbar{display:none}
 .tb{display:flex;align-items:center;justify-content:center;padding:14px 20px;position:relative;border-bottom:1px solid #f0f0f0;flex-shrink:0;background:var(--w)}
 .tb h2{font-size:16px;font-weight:700;color:var(--g9)}
 .bk{position:absolute;left:16px;background:none;border:none;cursor:pointer;font-size:22px;color:var(--g7);width:36px;height:36px;display:flex;align-items:center;justify-content:center}
 .btn{background:var(--g);color:#fff;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;width:100%}
 .btn:active{opacity:.85}
-.bwrap{padding:12px 20px 28px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.bwrap{padding:12px 20px calc(20px + env(safe-area-inset-bottom));flex-shrink:0;display:flex;flex-direction:column;gap:10px}
 .det-img{width:100%;height:280px;object-fit:cover;display:block;flex-shrink:0}
 .det-body{padding:18px 20px;flex:1;overflow-y:auto}
 .det-body::-webkit-scrollbar{display:none}
@@ -56,17 +50,20 @@ const ITEMS = {
   d5: { name:'버건디 가디건', pts:450, seller:'에린', price:'42,000원', when:'1년 이내', pollution:'없음', size:'M', material:'울 50%, 아크릴 50%', certs:['챌린지 완료 ✓','세탁 인증 ✓'], comment:'색감이 진짜 예쁜 버건디예요. 잘 어울리는 분께 가면 좋겠어요.', img:'https://picsum.photos/seed/cardigan/390/280' },
 };
 
+function getStoredPoints() {
+  if (typeof window === 'undefined') return 2450;
+  return parseInt(localStorage.getItem('userPoints') || '2450');
+}
+
 export default function DetailPage({ params }) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params);
   const item = ITEMS[id];
-  const [userPoints, setUserPoints] = useState(2450);
+  const [userPoints, setUserPoints] = useState(getStoredPoints);
   const [modal, setModal] = useState(null); // null | 'buy' | 'done' | 'insuf'
 
   useEffect(() => {
     if (!item) { router.push('/market'); return; }
-    const pts = parseInt(localStorage.getItem('userPoints') || '2450');
-    setUserPoints(pts);
   }, [item, router]);
 
   if (!item) return null;

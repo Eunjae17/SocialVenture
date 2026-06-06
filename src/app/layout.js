@@ -1,11 +1,12 @@
-import { Noto_Sans_KR } from "next/font/google";
 import KakaoScript from "@/components/KakaoScript";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const notoSansKR = Noto_Sans_KR({
-  variable: "--font-noto-sans-kr",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const notoSansKR = localFont({
+  src: "./fonts/NotoSansKR[wght].ttf",
+  weight: "400 800",
+  display: "swap",
+  fallback: ["-apple-system", "BlinkMacSystemFont", "Apple SD Gothic Neo", "sans-serif"],
 });
 
 export const metadata = {
@@ -15,8 +16,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" className={notoSansKR.variable}>
-      <body style={{ fontFamily: "'Noto Sans KR', sans-serif", margin: 0, padding: 0 }}>
+    <html lang="ko">
+      <body className={notoSansKR.className} style={{ margin: 0, padding: 0 }}>
         <KakaoScript />
         {children}
       </body>

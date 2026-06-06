@@ -36,9 +36,9 @@ export default function BottomNav({ active }) {
         마이페이지
       </button>
       <style>{`
-        .nav{display:flex;border-top:1px solid var(--g2);padding:8px 0 22px;flex-shrink:0;background:var(--w)}
-        .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:10px;color:var(--g4);padding:4px 0}
-        .ni.on{color:var(--g)}
+        .nav{position:sticky;bottom:0;z-index:30;display:flex;border-top:1px solid var(--g2,#E2E8F0);padding:8px 0 calc(10px + env(safe-area-inset-bottom));flex-shrink:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px)}
+        .ni{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:10px;color:var(--g4,#94A3B8);padding:4px 0}
+        .ni.on{color:var(--g,#00C950)}
         .ni svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
       `}</style>
     </nav>
