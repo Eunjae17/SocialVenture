@@ -95,6 +95,52 @@ const CSS = `
 `;
 
 const DAY_PTS = { 3: 300, 5: 550, 7: 840 };
+const CHALLENGE_PHOTO_BUCKET = 'challege-photos';
+
+function getPhotoExtension(mimeType) {
+  if (mimeType === 'image/png') return 'png';
+  if (mimeType === 'image/webp') return 'webp';
+  return 'jpg';
+}
+
+function getSafePathPart(value) {
+  return String(value || 'anonymous').replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+function createPhotoPath(kakaoId, mimeType) {
+  const id = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `${getSafePathPart(kakaoId)}/${id}.${getPhotoExtension(mimeType)}`;
+}
+
+async function uploadChallengePhoto(dataUrl, kakaoId) {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  const contentType = blob.type || 'image/jpeg';
+  const photoPath = createPhotoPath(kakaoId, contentType);
+
+  const { error } = await supabase.storage
+    .from(CHALLENGE_PHOTO_BUCKET)
+    .upload(photoPath, blob, {
+      cacheControl: '3600',
+      contentType,
+      upsert: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = supabase.storage
+    .from(CHALLENGE_PHOTO_BUCKET)
+    .getPublicUrl(photoPath);
+
+  return {
+    photoPath,
+    photoUrl: data.publicUrl,
+  };
+}
 
 export default function ChallengePage() {
   const router = useRouter();
@@ -108,6 +154,7 @@ export default function ChallengePage() {
   const [pfillWidth, setPfillWidth] = useState('0%');
   const [toast, setToast] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -219,29 +266,59 @@ export default function ChallengePage() {
   }
 
   async function submitChallenge() {
+    if (isSubmitting) return;
+
     const kakaoId = localStorage.getItem('kakaoId');
     const nickname = localStorage.getItem('userNickname') || '';
+    let uploadedPhotoPath = null;
 
     if (!kakaoId) {
       showToastMsg('로그인이 필요해요');
       return;
     }
 
-    // Supabase에 저장
-    const { error } = await supabase.from('challenges').insert({
-      kakao_id: kakaoId,
-      nickname: nickname,
-      name: itemName,
-      days: days,
-      pts: DAY_PTS[days],
-      status: 'active',
-      start_date: new Date().toISOString().slice(0, 10),
-    });
+    if (!capturedPhoto) {
+      showToastMsg('사진을 등록해주세요');
+      return;
+    }
 
-    if (error) console.error('챌린지 저장 오류:', error);
+    setIsSubmitting(true);
 
-    setStep(4);
-    setTimeout(() => setPfillWidth('4%'), 600);
+    try {
+      const { photoPath, photoUrl } = await uploadChallengePhoto(capturedPhoto, kakaoId);
+      uploadedPhotoPath = photoPath;
+
+      const { error } = await supabase.from('challenges').insert({
+        kakao_id: kakaoId,
+        nickname: nickname,
+        name: itemName,
+        days: days,
+        pts: DAY_PTS[days],
+        status: 'active',
+        start_date: new Date().toISOString().slice(0, 10),
+        photo_url: photoUrl,
+        photo_path: photoPath,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setStep(4);
+      setTimeout(() => setPfillWidth('4%'), 600);
+    } catch (error) {
+      console.error('챌린지 저장 오류:', error);
+
+      if (uploadedPhotoPath) {
+        await supabase.storage
+          .from(CHALLENGE_PHOTO_BUCKET)
+          .remove([uploadedPhotoPath]);
+      }
+
+      showToastMsg('챌린지 저장에 실패했어요');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -435,8 +512,10 @@ export default function ChallengePage() {
             <div style={{height:'20px'}}></div>
           </div>
           <div className="bwrap">
-            <button className="btn" onClick={submitChallenge}>챌린지 시작하기 🚀</button>
-            <button className="btn wh" onClick={() => goBack(3)}>수정하기</button>
+            <button className="btn" disabled={isSubmitting} onClick={submitChallenge}>
+              {isSubmitting ? '저장 중...' : '챌린지 시작하기 🚀'}
+            </button>
+            <button className="btn wh" disabled={isSubmitting} onClick={() => goBack(3)}>수정하기</button>
           </div>
         </div>
 
