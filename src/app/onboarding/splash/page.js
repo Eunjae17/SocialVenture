@@ -1,18 +1,15 @@
 'use client'
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 const illustrationImg = "https://www.figma.com/api/mcp/asset/81068431-7aa8-4e61-b166-d173315243bf";
 
 export default function SplashPage() {
-  const router = useRouter();
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/onboarding/login');
+      window.location.href = '/onboarding/login';
     }, 2500);
     return () => clearTimeout(timer);
-  }, [router]);
+  }, []);
 
   return (
     <>
