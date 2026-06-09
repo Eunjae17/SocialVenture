@@ -1,13 +1,8 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
-
-function getStoredPoints() {
-  if (typeof window === 'undefined') return 2450;
-  const pts = parseInt(localStorage.getItem('userPoints') || '0');
-  return pts > 0 ? pts : 2450;
-}
+import { supabase } from '@/lib/supabase';
 
 const CSS = `
 .market-screen{background:var(--w)}
@@ -24,56 +19,89 @@ const CSS = `
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px 16px}
 .mcard{background:var(--g1);border-radius:var(--r);overflow:hidden;border:1px solid var(--g2);cursor:pointer;transition:transform .15s,box-shadow .15s}
 .mcard:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
-.mcard-img{width:100%;height:160px;object-fit:cover;display:block}
+.mcard-img{width:100%;height:160px;object-fit:cover;display:block;background:#e5e7eb}
 .mcard-info{padding:10px 12px 12px}
 .mcard-name{font-size:13px;font-weight:700;color:var(--g9);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mcard-pts{font-size:14px;font-weight:800;color:var(--g)}
 .mcard-seller{font-size:11px;color:var(--g4);margin-top:4px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:#94a3b8;font-size:14px;gap:8px}
 `;
 
-const MARKET_ITEMS = [
-  { id:'d1', name:'검정 플리츠 스커트', pts:300, seller:'민지', img:'https://picsum.photos/seed/skirt/300/320' },
-  { id:'d2', name:'블루 플라워 원피스', pts:520, seller:'서연', img:'https://picsum.photos/seed/floral/300/320' },
-  { id:'d3', name:'그레이 더블 자켓', pts:680, seller:'수연', img:'https://picsum.photos/seed/jacket/300/320' },
-  { id:'d4', name:'화이트 헨리넥 보디수트', pts:300, seller:'하늘', img:'https://picsum.photos/seed/bodysuit/300/320' },
-  { id:'d5', name:'버건디 가디건', pts:450, seller:'에린', img:'https://picsum.photos/seed/cardigan/300/320' },
-];
-
 const CATS = ['전체', '상의', '하의', '아우터', '원피스', '액세서리'];
+
+// 포인트 산정: 챌린지 일수 기반
+function calcPts(days) {
+  if (days >= 7) return 840;
+  if (days >= 5) return 550;
+  return 300;
+}
 
 export default function MarketPage() {
   const router = useRouter();
   const [activeCat, setActiveCat] = useState('전체');
-  const [points] = useState(getStoredPoints);
+  const [points, setPoints] = useState(0);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const pts = parseInt(localStorage.getItem('userPoints') || '0', 10);
+    setPoints(isNaN(pts) ? 0 : pts);
+
+    // 전체 유저 마켓 아이템 불러오기
+    supabase
+      .from('market_items')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setItems(data || []);
+        setLoading(false);
+      });
+  }, []);
+
+  const filtered = activeCat === '전체' ? items : items.filter(i => i.category === activeCat);
 
   return (
     <>
       <style>{CSS}</style>
       <AppShell active="market" className="market-screen" contentClassName="market-screen">
-          <div className="mkt-search-area">
-            <div className="mkt-search-box">🔍&nbsp; 찾고 싶은 아이템을 검색하세요<span className="mkt-filter">⚙️</span></div>
+        <div className="mkt-search-area">
+          <div className="mkt-search-box">🔍&nbsp; 찾고 싶은 아이템을 검색하세요<span className="mkt-filter">⚙️</span></div>
+        </div>
+        <div className="cats">
+          {CATS.map(cat => (
+            <button key={cat} className={`cat${activeCat === cat ? ' on' : ''}`} onClick={() => setActiveCat(cat)}>{cat}</button>
+          ))}
+        </div>
+        <div className="pts-banner">
+          <span>현재 보유 포인트</span>
+          <span>{points.toLocaleString()}P</span>
+        </div>
+
+        {loading ? (
+          <div className="empty">불러오는 중...</div>
+        ) : filtered.length === 0 ? (
+          <div className="empty">
+            <span style={{fontSize:'32px'}}>🛍️</span>
+            아직 등록된 상품이 없어요
           </div>
-          <div className="cats">
-            {CATS.map(cat => (
-              <button key={cat} className={`cat${activeCat === cat ? ' on' : ''}`} onClick={() => setActiveCat(cat)}>{cat}</button>
+        ) : (
+          <div className="mgrid">
+            {filtered.map(item => (
+              <div key={item.id} className="mcard" onClick={() => router.push(`/market/${item.id}`)}>
+                {item.photo_url
+                  ? <img alt={item.name} className="mcard-img" src={item.photo_url} />
+                  : <div className="mcard-img" />
+                }
+                <div className="mcard-info">
+                  <div className="mcard-name">{item.name}</div>
+                  <div className="mcard-pts">{calcPts(item.days)}P</div>
+                  <div className="mcard-seller">판매자: {item.seller}</div>
+                </div>
+              </div>
             ))}
           </div>
-          <div className="pts-banner">
-            <span>현재 보유 포인트</span>
-            <span>{points.toLocaleString()}P</span>
-          </div>
-            <div className="mgrid">
-              {MARKET_ITEMS.map(item => (
-                <div key={item.id} className="mcard" onClick={() => router.push(`/market/${item.id}`)}>
-                  <img alt={item.name} className="mcard-img" src={item.img} />
-                  <div className="mcard-info">
-                    <div className="mcard-name">{item.name}</div>
-                    <div className="mcard-pts">{item.pts}P</div>
-                    <div className="mcard-seller">판매자: {item.seller}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+        )}
       </AppShell>
     </>
   );

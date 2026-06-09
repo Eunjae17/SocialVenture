@@ -35,6 +35,14 @@ export default function LoginPage() {
       });
   }, [router]);
 
+  function handleGuestMode() {
+    localStorage.clear();
+    localStorage.setItem('userNickname', '게스트');
+    localStorage.setItem('kakaoId', `guest_${Date.now()}`);
+    localStorage.setItem('userPoints', '0');
+    router.push('/home');
+  }
+
   function handleKakaoLogin() {
     if (typeof window === 'undefined') return;
 
@@ -157,11 +165,21 @@ export default function LoginPage() {
           background:none;
           border:none;
         }
+        .btn-guest {
+          font-family:'Noto Sans KR',sans-serif;
+          font-size:13px;
+          color:rgba(255,255,255,0.6);
+          background:none;
+          border:none;
+          cursor:pointer;
+          margin-top:8px;
+          text-decoration:underline;
+        }
       `}</style>
       <div className="wrap">
         <div className="container">
           <div className="logo-area">
-            <div className="logo-main">옷옷</div>
+            <img src="/logo.png" alt="옷옷" style={{width:'120px', height:'120px', borderRadius:'28px', display:'block', margin:'0 auto 8px'}} />
             <div className="logo-sub">지속 가능한 패션 챌린지 & 마켓</div>
           </div>
           <button className="btn-kakao" onClick={handleKakaoLogin}>
@@ -179,6 +197,7 @@ export default function LoginPage() {
           <div className="divider" />
           <button className="btn-email">이메일로 시작하기</button>
           <button className="link-signup">아직 계정이 없으신가요? 회원가입</button>
+          <button className="btn-guest" onClick={handleGuestMode}>둘러보기</button>
         </div>
       </div>
     </>

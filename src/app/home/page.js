@@ -16,18 +16,6 @@ function getStoredNumber(key, fallback = 0) {
   return Number.isNaN(value) ? fallback : value;
 }
 
-function getDaysElapsed(startDate) {
-  const start = new Date(startDate);
-  const now = new Date();
-  return Math.max(1, Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1);
-}
-
-function getStatusTag(c) {
-  const elapsed = getDaysElapsed(c.start_date);
-  if (elapsed >= c.days) return { label: '완료', bg: '#dcfce7', color: '#008236' };
-  return { label: '진행중', bg: '#dbeafe', color: '#1447e6' };
-}
-
 const CSS = `
 .home-screen{background:#f5f5f5}
 .home-content{background:#f5f5f5}
@@ -40,26 +28,39 @@ export default function HomePage() {
   const [nickname] = useState(() => getStoredValue('userNickname'));
   const [points] = useState(() => getStoredNumber('userPoints'));
   const [challenges, setChallenges] = useState([]);
+  const [logCounts, setLogCounts] = useState({}); // { challengeId: count }
 
   useEffect(() => {
     const kakaoId = localStorage.getItem('kakaoId');
-
-    if (!kakaoId) {
-      return;
-    }
+    if (!kakaoId) return;
 
     supabase
       .from('challenges')
       .select('*')
       .eq('kakao_id', kakaoId)
       .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (error) console.error('챌린지 불러오기 오류:', error);
-        setChallenges(data || []);
+        const list = data || [];
+        setChallenges(list);
+
+        // 각 챌린지별 인증 횟수 가져오기
+        if (list.length > 0) {
+          const { data: logs } = await supabase
+            .from('challenge_logs')
+            .select('challenge_id')
+            .eq('kakao_id', kakaoId);
+
+          const counts = {};
+          (logs || []).forEach(l => {
+            counts[l.challenge_id] = (counts[l.challenge_id] || 0) + 1;
+          });
+          setLogCounts(counts);
+        }
       });
   }, []);
 
-  const activeChals = challenges.filter(c => getDaysElapsed(c.start_date) < c.days);
+  const activeChals = challenges.filter(c => (logCounts[c.id] || 0) < c.days);
 
   return (
     <>
@@ -93,15 +94,15 @@ export default function HomePage() {
             <div style={{fontSize:'16px', fontWeight:500, color:'#0a0a0a', marginBottom:'12px', letterSpacing:'-0.31px'}}>진행 중인 챌린지</div>
             <div className="cscroll">
               {activeChals.map(c => {
-                const elapsed = getDaysElapsed(c.start_date);
-                const progress = Math.min(100, Math.round((elapsed / c.days) * 100));
+                const count = logCounts[c.id] || 0;
+                const progress = Math.min(100, Math.round((count / c.days) * 100));
                 return (
-                  <div key={c.id} style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', minWidth:'144px', flexShrink:0, padding:'13px 13px 8px'}}>
+                  <div key={c.id} onClick={() => router.push(`/challenge-log?id=${c.id}`)} style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', minWidth:'144px', flexShrink:0, padding:'13px 13px 8px', cursor:'pointer'}}>
                     <div style={{width:'100%', height:'40px', background:'#e5e7eb', borderRadius:'10px', marginBottom:'8px', overflow:'hidden'}}>
                       {c.photo_url && <img src={c.photo_url} alt={c.name} style={{width:'100%', height:'100%', objectFit:'cover'}} />}
                     </div>
                     <div style={{fontSize:'14px', color:'#0a0a0a', marginBottom:'4px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{c.name}</div>
-                    <div style={{fontSize:'12px', color:'#6a7282', marginBottom:'6px'}}>{elapsed}일 / {c.days}일</div>
+                    <div style={{fontSize:'12px', color:'#6a7282', marginBottom:'6px'}}>{count}일 / {c.days}일</div>
                     <div style={{background:'#e5e7eb', borderRadius:'999px', height:'6px', overflow:'hidden'}}>
                       <div style={{background:'#00C950', height:'6px', borderRadius:'999px', width:`${progress}%`}} />
                     </div>
@@ -122,7 +123,11 @@ export default function HomePage() {
           ) : (
             <div style={{display:'flex', flexDirection:'column', gap:'9px'}}>
               {challenges.map(c => {
-                const tag = getStatusTag(c);
+                const count = logCounts[c.id] || 0;
+                const isDone = count >= c.days;
+                const tag = isDone
+                  ? { label: '완료', bg: '#dcfce7', color: '#008236' }
+                  : { label: '진행중', bg: '#dbeafe', color: '#1447e6' };
                 return (
                   <div key={c.id} style={{background:'#fff', border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px 20px'}}>
                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px'}}>
@@ -130,7 +135,7 @@ export default function HomePage() {
                       <span style={{background:tag.bg, color:tag.color, borderRadius:'999px', padding:'2px 8px', fontSize:'12px', whiteSpace:'nowrap'}}>{tag.label}</span>
                     </div>
                     <div style={{fontSize:'12px', color:'#6a7282', display:'flex', gap:'6px', alignItems:'center'}}>
-                      <span>{c.days}일</span>
+                      <span>{count}일 / {c.days}일</span>
                       <span>•</span>
                       <span>{c.pts}P 획득</span>
                       <span>•</span>

@@ -142,6 +142,8 @@ async function uploadChallengePhoto(dataUrl, kakaoId) {
   };
 }
 
+const CAT_EMOJI = { '상의': '👕', '하의': '👖', '아우터': '🧥', '원피스': '👗', '액세서리': '💍' };
+
 export default function ChallengePage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -298,6 +300,7 @@ export default function ChallengePage() {
         start_date: new Date().toISOString().slice(0, 10),
         photo_url: photoUrl,
         photo_path: photoPath,
+        category: selectedCat,
       });
 
       if (error) {
@@ -505,8 +508,7 @@ export default function ChallengePage() {
               <p style={{fontSize:'12px', color:'var(--g5)', lineHeight:'1.7'}}>
                 📋 <strong style={{color:'var(--g7)'}}>챌린지 규칙</strong><br/>
                 · 매일 오전 6시 ~ 자정 사이에 착장 인증<br/>
-                · 하루라도 미인증 시 챌린지 연장 가능 (1회)<br/>
-                · 완료 후 포인트는 즉시 지급돼요
+· 완료 후 포인트는 즉시 지급돼요
               </p>
             </div>
             <div style={{height:'20px'}}></div>
@@ -533,7 +535,7 @@ export default function ChallengePage() {
                 <strong>{pts.toLocaleString()}P</strong>
               </div>
               <div className="done-challenge">
-                <span style={{fontSize:'28px'}}>👕</span>
+                <span style={{fontSize:'28px'}}>{CAT_EMOJI[selectedCat] || '👕'}</span>
                 <div className="done-challenge-info">
                   <p>{itemName}</p>
                   <span>0일 / {days}일 완료</span>

@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import { supabase } from '@/lib/supabase';
 
@@ -38,10 +39,40 @@ const CSS = `
 .photo-tips li{font-size:12px;color:#008236;line-height:1.8}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#0a0a0a;color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;white-space:nowrap;z-index:999;animation:fadein .2s}
 @keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.done-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;padding:40px 24px;gap:0}
+.done-badge{background:#dcfce7;color:#008236;font-size:13px;font-weight:600;padding:7px 18px;border-radius:999px;margin-bottom:28px}
+.done-title{font-size:22px;font-weight:700;color:#0a0a0a;text-align:center;line-height:1.5;margin-bottom:48px;letter-spacing:-.5px}
+.dots-row{display:flex;align-items:center;gap:0;margin-bottom:12px}
+.dot-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.dot-circle{width:48px;height:48px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;position:relative}
+.dot-circle.done{background:#00C950}
+.dot-line{width:24px;height:3px;background:#e5e7eb;margin-bottom:20px}
+.dot-line.done{background:#00C950}
+.dot-label{font-size:12px;color:#6a7282}
+.dot-label.done{color:#00C950;font-weight:600}
+.done-bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:16px 20px calc(20px + env(safe-area-inset-bottom));background:#fff}
+.alldone-screen{height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;padding:40px 24px;text-align:center;overflow:hidden}
+.alldone-icon{font-size:60px;margin-bottom:16px;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(.6);opacity:0}80%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.alldone-title{font-size:26px;font-weight:800;color:#0a0a0a;letter-spacing:-.6px;margin-bottom:8px}
+.alldone-sub{font-size:15px;color:#6a7282;margin-bottom:24px;line-height:1.6}
+.alldone-pts-box{background:#f0fdf4;border-radius:16px;padding:18px 24px;width:100%;margin-bottom:10px}
+.alldone-pts-label{font-size:13px;color:#008236;margin-bottom:6px}
+.alldone-pts-val{font-size:28px;font-weight:800;color:#00C950}
+.alldone-total-box{background:#f5f5f5;border-radius:16px;padding:14px 24px;width:100%;margin-bottom:24px}
+.alldone-total-label{font-size:13px;color:#6a7282;margin-bottom:4px}
+.alldone-total-val{font-size:20px;font-weight:700;color:#0a0a0a}
+.btn-market{width:100%;padding:16px;background:#00C950;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:-.15px;margin-bottom:10px}
+.btn-home{width:100%;padding:14px;background:#fff;color:#0a0a0a;border:1.5px solid #e5e7eb;border-radius:12px;font-size:15px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:-.15px}
 `;
 
 export default function ChallengeLogPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedId = searchParams.get('id');
+
   const [challenges, setChallenges] = useState([]);
+  const [logCounts, setLogCounts] = useState({});
   const [selected, setSelected] = useState(null);
   const [step, setStep] = useState('select'); // 'select' | 'camera'
   const [cameraMode, setCameraMode] = useState('idle'); // idle | live | preview
@@ -49,6 +80,7 @@ export default function ChallengeLogPage() {
   const [facingMode, setFacingMode] = useState('environment');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
+  const [doneInfo, setDoneInfo] = useState(null); // { dayNum, totalDays }
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -60,7 +92,29 @@ export default function ChallengeLogPage() {
       .select('*')
       .eq('kakao_id', kakaoId)
       .order('created_at', { ascending: false })
-      .then(({ data }) => setChallenges(data || []));
+      .then(async ({ data }) => {
+        const list = data || [];
+        setChallenges(list);
+
+        // 인증 횟수 가져오기
+        const { data: logs } = await supabase
+          .from('challenge_logs')
+          .select('challenge_id')
+          .eq('kakao_id', kakaoId);
+        const counts = {};
+        (logs || []).forEach(l => {
+          counts[l.challenge_id] = (counts[l.challenge_id] || 0) + 1;
+        });
+        setLogCounts(counts);
+
+        if (preselectedId) {
+          const found = list.find(c => c.id === preselectedId);
+          if (found) {
+            setSelected(found);
+            setStep('camera');
+          }
+        }
+      });
   }, []);
 
   // 카메라 시작
@@ -146,9 +200,25 @@ export default function ChallengeLogPage() {
         logged_at: new Date().toISOString(),
       });
 
-      showToast('인증 완료! 🎉');
-      setStep('select');
-      setSelected(null);
+      // 몇 일차인지 계산
+      const { count } = await supabase
+        .from('challenge_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('challenge_id', selected.id)
+        .eq('kakao_id', kakaoId);
+
+      const dayNum = count || 1;
+      const isAllDone = dayNum >= selected.days;
+
+      // 챌린지 완전 완료 시 포인트 업데이트
+      if (isAllDone) {
+        const currentPts = parseInt(localStorage.getItem('userPoints') || '0', 10);
+        const newPts = currentPts + (selected.pts || 0);
+        localStorage.setItem('userPoints', String(newPts));
+      }
+
+      setDoneInfo({ dayNum, totalDays: selected.days, isAllDone, pts: selected.pts || 0 });
+      setStep('done');
       setCapturedPhoto(null);
       setCameraMode('idle');
     } catch (err) {
@@ -159,8 +229,82 @@ export default function ChallengeLogPage() {
     }
   }
 
-  const elapsed = selected ? getDaysElapsed(selected.start_date) : 0;
-  const progress = selected ? Math.min(100, Math.round((elapsed / selected.days) * 100)) : 0;
+  const selectedCount = selected ? (logCounts[selected.id] || 0) : 0;
+  const progress = selected ? Math.min(100, Math.round((selectedCount / selected.days) * 100)) : 0;
+
+  // 챌린지 전체 완료 화면
+  if (step === 'done' && doneInfo?.isAllDone) {
+    const currentPts = parseInt(localStorage.getItem('userPoints') || '0', 10);
+    return (
+      <>
+        <style>{CSS}</style>
+        <div className="alldone-screen">
+          <div className="alldone-icon">🎉</div>
+          <div className="alldone-title">챌린지 완료!</div>
+          <div className="alldone-sub">챌린지를 끝까지 해냈어요!<br/>지속 가능한 패션을 실천하고 있어요 🌿</div>
+          <div className="alldone-pts-box">
+            <div className="alldone-pts-label">이번 챌린지로 획득한 포인트</div>
+            <div className="alldone-pts-val">+{doneInfo.pts.toLocaleString()}P</div>
+          </div>
+          <div className="alldone-total-box">
+            <div className="alldone-total-label">현재 보유 포인트</div>
+            <div className="alldone-total-val">{currentPts.toLocaleString()}P</div>
+          </div>
+          <div style={{ width: '100%' }}>
+            <button className="btn-market" onClick={() => { router.push(`/market/register?name=${encodeURIComponent(selected?.name || '')}&days=${doneInfo.totalDays}&category=${encodeURIComponent(selected?.category || '')}`); }}>
+              마켓에 아이템 등록하기
+            </button>
+            <button className="btn-home" onClick={() => { router.refresh(); router.push('/home'); }}>
+              홈으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // N일차 인증 완료 화면
+  if (step === 'done' && doneInfo) {
+    const { dayNum, totalDays } = doneInfo;
+    return (
+      <>
+        <style>{CSS}</style>
+        <div className="done-screen">
+          <div className="done-badge">챌린지 완료</div>
+          <div className="done-title">{dayNum}일차 인증 완료!<br/>좋은 순환이 차곡차곡<br/>이어지고 있어요 ✨</div>
+
+          {/* 진행 점 */}
+          <div className="dots-row">
+            {Array.from({ length: totalDays }).map((_, i) => {
+              const isDone = i < dayNum;
+              const isLast = i === totalDays - 1;
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
+                  <div className="dot-wrap">
+                    <div className={`dot-circle${isDone ? ' done' : ''}`}>
+                      {isDone && (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span className={`dot-label${isDone ? ' done' : ''}`}>{i + 1}일차</span>
+                  </div>
+                  {!isLast && <div className={`dot-line${isDone ? ' done' : ''}`} style={{ marginBottom: '20px' }} />}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="done-bottom">
+            <button className="btn-main" onClick={() => { router.refresh(); router.push('/home'); }}>
+              완료
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -178,29 +322,26 @@ export default function ChallengeLogPage() {
         {/* STEP 1: 챌린지 선택 */}
         {step === 'select' && (
           <div style={{ padding: '12px 20px 20px' }}>
-            {challenges.length === 0 ? (
+            {challenges.filter(c => (logCounts[c.id] || 0) < c.days).length === 0 ? (
               <div style={{ padding: '60px 0', textAlign: 'center', color: '#6a7282', fontSize: '14px' }}>
-                등록된 챌린지가 없어요
+                진행 중인 챌린지가 없어요
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-                {challenges.map(c => {
-                  const el = getDaysElapsed(c.start_date);
+                {challenges.filter(c => (logCounts[c.id] || 0) < c.days).map(c => {
+                  const el = logCounts[c.id] || 0;
                   const pg = Math.min(100, Math.round((el / c.days) * 100));
-                  const isDone = el >= c.days;
+                  const isDone = false;
                   return (
                     <div
                       key={c.id}
                       className={`chal-card${selected?.id === c.id ? ' selected' : ''}${isDone ? ' done' : ''}`}
                       onClick={() => !isDone && setSelected(c)}
-                      style={isDone ? { opacity: 0.5, cursor: 'default' } : {}}
+                      style={{}}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <span style={{ fontSize: '15px', fontWeight: 500, color: '#0a0a0a' }}>{c.name}</span>
-                        {isDone
-                          ? <span style={{ fontSize: '11px', fontWeight: 600, color: '#008236', background: '#dcfce7', borderRadius: '999px', padding: '3px 10px' }}>완료</span>
-                          : <span style={{ fontSize: '11px', fontWeight: 600, color: '#1447e6', background: '#dbeafe', borderRadius: '999px', padding: '3px 10px' }}>진행 중</span>
-                        }
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#1447e6', background: '#dbeafe', borderRadius: '999px', padding: '3px 10px' }}>진행 중</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <span style={{ fontSize: '12px', color: '#6a7282' }}>{el}일 / {c.days}일</span>
@@ -226,7 +367,7 @@ export default function ChallengeLogPage() {
             <div style={{ margin: '12px 20px 0', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '12px 16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ fontSize: '14px', fontWeight: 500, color: '#0a0a0a' }}>{selected?.name}</span>
-                <span style={{ fontSize: '12px', color: '#6a7282' }}>{elapsed}일 / {selected?.days}일</span>
+                <span style={{ fontSize: '12px', color: '#6a7282' }}>{selectedCount}일 / {selected?.days}일</span>
               </div>
               <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
                 <div style={{ background: '#00C950', height: '6px', borderRadius: '999px', width: `${progress}%` }} />
