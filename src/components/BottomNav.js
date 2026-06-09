@@ -13,7 +13,7 @@ export default function BottomNav({ active }) {
         </svg>
         홈
       </button>
-      <button className={`ni${active === 'challenge' ? ' on' : ''}`} onClick={() => router.push('/challenge')}>
+      <button className={`ni${active === 'challenge' ? ' on' : ''}`} onClick={() => router.push('/challenge-log')}>
         <svg viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="3"/>
           <path d="M20 7h-3l-2-3H9L7 7H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>

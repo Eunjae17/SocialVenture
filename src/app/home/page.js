@@ -25,7 +25,6 @@ function getDaysElapsed(startDate) {
 function getStatusTag(c) {
   const elapsed = getDaysElapsed(c.start_date);
   if (elapsed >= c.days) return { label: '완료', bg: '#dcfce7', color: '#008236' };
-  if (elapsed >= c.days * 0.8) return { label: '연장중', bg: '#ffedd4', color: '#ca3500' };
   return { label: '진행중', bg: '#dbeafe', color: '#1447e6' };
 }
 
