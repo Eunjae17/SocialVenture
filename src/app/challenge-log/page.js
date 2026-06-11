@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import { supabase } from '@/lib/supabase';
@@ -66,7 +66,7 @@ const CSS = `
 .btn-home{width:100%;padding:14px;background:#fff;color:#0a0a0a;border:1.5px solid #e5e7eb;border-radius:12px;font-size:15px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:-.15px}
 `;
 
-export default function ChallengeLogPage() {
+function ChallengeLogInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedId = searchParams.get('id');
@@ -438,5 +438,13 @@ export default function ChallengeLogPage() {
       </AppShell>
       {toast && <div className="toast">{toast}</div>}
     </>
+  );
+}
+
+export default function ChallengeLogPage() {
+  return (
+    <Suspense fallback={null}>
+      <ChallengeLogInner />
+    </Suspense>
   );
 }

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const CSS = `
@@ -39,7 +40,7 @@ const WHEN_OPTIONS = ['3개월 이내', '6개월 이내', '1년 이내', '1년 �
 const POLLUTION_OPTIONS = ['없음', '약간 있음', '있음'];
 const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'FREE'];
 
-export default function MarketRegisterPage() {
+function MarketRegisterInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const challengeName = searchParams.get('name') || '';
@@ -220,5 +221,13 @@ export default function MarketRegisterPage() {
 
       {toast && <div className="toast">{toast}</div>}
     </>
+  );
+}
+
+export default function MarketRegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <MarketRegisterInner />
+    </Suspense>
   );
 }
