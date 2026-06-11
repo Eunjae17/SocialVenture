@@ -82,10 +82,35 @@ export default function DetailPage({ params }) {
     else setModal('insuf');
   }
 
-  function confirmBuy() {
+  async function confirmBuy() {
+    const buyerKakaoId = localStorage.getItem('kakaoId');
+
+    // 구매자 포인트 차감
     const newPts = userPoints - pts;
     localStorage.setItem('userPoints', String(newPts));
     setUserPoints(newPts);
+
+    // 상품 판매완료 처리
+    await supabase.from('market_items').update({ status: 'sold' }).eq('id', id);
+
+    // 판매자에게 포인트 지급 (유효기간 1달)
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    await supabase.from('user_points').insert({
+      kakao_id: item.kakao_id,
+      amount: pts,
+      type: 'sold',
+      expires_at: expiresAt.toISOString(),
+    });
+
+    // 판매자에게 알림 생성
+    const buyerNickname = localStorage.getItem('userNickname') || '누군가';
+    await supabase.from('notifications').insert({
+      kakao_id: item.kakao_id,
+      message: `${buyerNickname}님이 "${item.name}"을 구매했어요! 환경에도 한 걸음 도움이 됐어요 🌎`,
+      read: false,
+    });
+
     setModal('done');
   }
 
@@ -135,7 +160,9 @@ export default function DetailPage({ params }) {
           </div>
           <div className="bwrap">
             <div className="pts-notice">보유 포인트: <strong style={{color:'var(--g)'}}>{userPoints.toLocaleString()}P</strong></div>
-            <button className="btn" onClick={handleBuy}>{pts}P로 구매하기</button>
+            <button className="btn" onClick={handleBuy} disabled={item.status === 'sold'} style={item.status === 'sold' ? {background:'#e5e7eb', color:'#94a3b8', cursor:'not-allowed'} : {}}>
+              {item.status === 'sold' ? '판매완료' : `${pts}P로 구매하기`}
+            </button>
           </div>
 
           {modal === 'buy' && (

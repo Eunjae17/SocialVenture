@@ -1,7 +1,6 @@
 'use client'
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const CSS = `
@@ -33,6 +32,12 @@ const CSS = `
 .textarea:focus{border-color:#00C950}
 .textarea::placeholder{color:#94a3b8}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#0a0a0a;color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;white-space:nowrap;z-index:999;animation:fadein .2s}
+.bonus-sec{background:#f9fafb;border-radius:14px;padding:16px;margin-bottom:20px}
+.bonus-title{font-size:13px;font-weight:700;color:#0a0a0a;margin-bottom:12px}
+.bonus-row{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.bonus-row.done{border-color:#00C950;background:#f0fdf4}
+.bonus-row-label{font-size:13px;color:#0a0a0a;font-weight:500}
+.bonus-pts{font-size:13px;font-weight:700;color:#00C950;margin-right:8px}
 @keyframes fadein{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 `;
 
@@ -45,8 +50,8 @@ function MarketRegisterInner() {
   const searchParams = useSearchParams();
   const challengeName = searchParams.get('name') || '';
   const challengeDays = searchParams.get('days') || '';
-  const challengePhoto = searchParams.get('photo') || '';
   const challengeCategory = searchParams.get('category') || '';
+  const challengeId = searchParams.get('challengeId') || '';
 
   const [price, setPrice] = useState('');
   const [when, setWhen] = useState('');
@@ -54,13 +59,66 @@ function MarketRegisterInner() {
   const [size, setSize] = useState('');
   const [material, setMaterial] = useState('');
   const [comment, setComment] = useState('');
-  const [photo, setPhoto] = useState(challengePhoto || null);
+  const [autoPhotos, setAutoPhotos] = useState([]);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
+  const [bonusPhotos, setBonusPhotos] = useState({ detail: null, front: null, wash: null });
+  const [bonusPts, setBonusPts] = useState(0);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
-  const fileRef = useRef();
+
+  const BONUS_PTS = { detail: 50, front: 50, wash: 100 };
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
+
+  const handleBonusPhoto = (key) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      setBonusPhotos(prev => ({ ...prev, [key]: { file: f, url } }));
+      if (!bonusPhotos[key]) {
+        setBonusPts(prev => prev + BONUS_PTS[key]);
+        const curPts = parseInt(localStorage.getItem('userPoints') || '0', 10);
+        localStorage.setItem('userPoints', String(curPts + BONUS_PTS[key]));
+      }
+    };
+    input.click();
+  };
+
+  // 챌린지 등록 사진 + 인증 사진 자동 불러오기
+  useEffect(() => {
+    if (!challengeId) return;
+    const kakaoId = localStorage.getItem('kakaoId');
+
+    async function loadPhotos() {
+      const photos = [];
+
+      // 챌린지 등록 때 찍은 사진
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('photo_url')
+        .eq('id', challengeId)
+        .single();
+      if (challenge?.photo_url) photos.push(challenge.photo_url);
+
+      // 챌린지 인증 사진들
+      const { data: logs } = await supabase
+        .from('challenge_logs')
+        .select('photo_url')
+        .eq('challenge_id', challengeId)
+        .eq('kakao_id', kakaoId)
+        .order('logged_at', { ascending: true });
+      (logs || []).forEach(l => { if (l.photo_url) photos.push(l.photo_url); });
+
+      setAutoPhotos(photos);
+      if (photos.length > 0) setSelectedPhoto(photos[0]);
+    }
+    loadPhotos();
+  }, [challengeId]);
 
   const handlePhoto = (e) => {
     const f = e.target.files[0];
@@ -77,17 +135,22 @@ function MarketRegisterInner() {
     try {
       const kakaoId = localStorage.getItem('kakaoId');
       const nickname = localStorage.getItem('userNickname') || '';
-      let photoUrl = challengePhoto || null;
+      const photoUrl = selectedPhoto || autoPhotos[0] || null;
+      const allPhotos = autoPhotos.length > 0 ? autoPhotos : (photoUrl ? [photoUrl] : []);
 
-      if (photoFile) {
-        const ext = photoFile.name.split('.').pop();
-        const path = `market/${kakaoId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from('challenge-photos')
-          .upload(path, photoFile, { contentType: photoFile.type, upsert: false });
-        if (!upErr) {
-          const { data } = supabase.storage.from('challenge-photos').getPublicUrl(path);
-          photoUrl = data.publicUrl;
+      // 보너스 사진 업로드
+      const bonusUrls = {};
+      for (const [key, val] of Object.entries(bonusPhotos)) {
+        if (val?.file) {
+          const ext = val.file.name.split('.').pop();
+          const path = `bonus/${kakaoId}/${key}_${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from('challenge-photos')
+            .upload(path, val.file, { contentType: val.file.type, upsert: false });
+          if (!upErr) {
+            const { data } = supabase.storage.from('challenge-photos').getPublicUrl(path);
+            bonusUrls[key] = data.publicUrl;
+          }
         }
       }
 
@@ -104,7 +167,9 @@ function MarketRegisterInner() {
         material,
         comment,
         photo_url: photoUrl,
+        photos: allPhotos,
         status: 'active',
+        bonus_photos: Object.keys(bonusUrls).length > 0 ? bonusUrls : null,
       });
 
       showToast('마켓에 등록됐어요 🎉');
@@ -129,8 +194,8 @@ function MarketRegisterInner() {
         <div className="sl">
           {/* 챌린지 아이템 정보 */}
           <div className="item-card">
-            {photo
-              ? <img className="item-img" src={photo} alt={challengeName} />
+            {selectedPhoto
+              ? <img className="item-img" src={selectedPhoto} alt={challengeName} />
               : <div className="item-img" />
             }
             <div>
@@ -141,24 +206,18 @@ function MarketRegisterInner() {
             </div>
           </div>
 
-          {/* 대표 사진 */}
+          {/* 대표 사진 선택 */}
           <div className="sec">
             <div className="sec-label">대표 사진</div>
-            <div className="photo-area" onClick={() => fileRef.current.click()}>
-              {photo
-                ? <img src={photo} alt="상품 사진" />
-                : (
-                  <div className="photo-placeholder">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-                      <circle cx="12" cy="13" r="4"/>
-                    </svg>
-                    <span style={{fontSize:'13px'}}>사진 추가하기</span>
-                  </div>
-                )
-              }
+            <div style={{display:'flex', gap:'8px', overflowX:'auto', paddingBottom:'8px', marginBottom:'4px'}}>
+              {autoPhotos.map((url, i) => (
+                <div key={i} onClick={() => { setSelectedPhoto(url); setPhotoFile(null); }}
+                  style={{flexShrink:0, width:'90px', height:'90px', borderRadius:'10px', overflow:'hidden', border: selectedPhoto === url ? '2.5px solid #00C950' : '2px solid #e5e7eb', cursor:'pointer'}}>
+                  <img src={url} alt="" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                </div>
+              ))}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" style={{display:'none'}} onChange={handlePhoto} />
+            <div style={{fontSize:'12px', color:'#94a3b8'}}>대표로 올릴 사진을 선택하세요</div>
           </div>
 
           {/* 구매 가격 */}
@@ -207,6 +266,27 @@ function MarketRegisterInner() {
           <div className="sec">
             <div className="sec-label">💬 판매자 한마디 (선택)</div>
             <textarea className="textarea" placeholder="아이템에 대해 자유롭게 소개해주세요" value={comment} onChange={e => setComment(e.target.value)} />
+          </div>
+
+          {/* 추가 인증으로 보너스 포인트 */}
+          <div className="bonus-sec">
+            <div className="bonus-title">추가 인증으로 보너스 포인트 받기 {bonusPts > 0 && <span style={{color:'#00C950'}}>+{bonusPts}P 적립됨!</span>}</div>
+            {[
+              { key: 'detail', label: '소재 디테일 확대 사진 업로드', pts: 50 },
+              { key: 'front',  label: '옷 단독 정면 사진 업로드',     pts: 50 },
+              { key: 'wash',   label: '세탁 인증 사진 업로드',         pts: 100 },
+            ].map(({ key, label, pts }) => (
+              <div key={key} className={`bonus-row${bonusPhotos[key] ? ' done' : ''}`} onClick={() => handleBonusPhoto(key)}>
+                <span className="bonus-row-label">{bonusPhotos[key] ? '✅ ' : ''}{label}</span>
+                <div style={{display:'flex', alignItems:'center'}}>
+                  <span className="bonus-pts">+{pts} pts</span>
+                  {bonusPhotos[key]
+                    ? <img src={bonusPhotos[key].url} alt="" style={{width:32, height:32, borderRadius:6, objectFit:'cover'}} />
+                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  }
+                </div>
+              </div>
+            ))}
           </div>
 
           <div style={{height: '8px'}} />

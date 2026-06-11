@@ -43,14 +43,25 @@ export default function MypagePage() {
     const kakaoId = localStorage.getItem('kakaoId');
     if (!kakaoId) { setLoading(false); return; }
 
+    const points = parseInt(localStorage.getItem('userPoints') || '0', 10);
+
     Promise.all([
-      supabase.from('profiles').select('points').eq('kakao_id', kakaoId).single(),
-      supabase.from('challenge_completions').select('id', { count: 'exact', head: true }).eq('user_kakao_id', kakaoId),
-      supabase.from('purchases').select('id', { count: 'exact', head: true }).eq('user_kakao_id', kakaoId),
-    ]).then(([profileRes, challengeRes, purchaseRes]) => {
+      // 완료한 챌린지 수 (인증 횟수가 목표 일수 이상인 것)
+      supabase.from('challenges').select('id, days').eq('kakao_id', kakaoId),
+      // 구매한 아이템 수
+      supabase.from('market_items').select('id', { count: 'exact', head: true }).eq('status', 'sold'),
+      // 내가 등록한 챌린지별 인증 횟수
+      supabase.from('challenge_logs').select('challenge_id').eq('kakao_id', kakaoId),
+    ]).then(([chalRes, purchaseRes, logsRes]) => {
+      const challenges = chalRes.data || [];
+      const logs = logsRes.data || [];
+      const counts = {};
+      logs.forEach(l => { counts[l.challenge_id] = (counts[l.challenge_id] || 0) + 1; });
+      const completedCount = challenges.filter(c => (counts[c.id] || 0) >= c.days).length;
+
       setStats({
-        challenges: challengeRes.count ?? 0,
-        points: profileRes.data?.points ?? 0,
+        challenges: completedCount,
+        points,
         purchases: purchaseRes.count ?? 0,
       });
       setLoading(false);

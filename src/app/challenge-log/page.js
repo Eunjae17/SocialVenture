@@ -251,7 +251,7 @@ function ChallengeLogInner() {
             <div className="alldone-total-val">{currentPts.toLocaleString()}P</div>
           </div>
           <div style={{ width: '100%' }}>
-            <button className="btn-market" onClick={() => { router.push(`/market/register?name=${encodeURIComponent(selected?.name || '')}&days=${doneInfo.totalDays}&category=${encodeURIComponent(selected?.category || '')}`); }}>
+            <button className="btn-market" onClick={() => { router.push(`/market/register?name=${encodeURIComponent(selected?.name || '')}&days=${doneInfo.totalDays}&category=${encodeURIComponent(selected?.category || '')}&challengeId=${selected?.id || ''}`); }}>
               마켓에 아이템 등록하기
             </button>
             <button className="btn-home" onClick={() => { router.refresh(); router.push('/home'); }}>

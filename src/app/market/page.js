@@ -20,6 +20,9 @@ const CSS = `
 .mcard{background:var(--g1);border-radius:var(--r);overflow:hidden;border:1px solid var(--g2);cursor:pointer;transition:transform .15s,box-shadow .15s}
 .mcard:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
 .mcard-img{width:100%;height:160px;object-fit:cover;display:block;background:#e5e7eb}
+.mcard-img-wrap{position:relative}
+.sold-badge{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
+.sold-badge span{background:#fff;color:#0a0a0a;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px}
 .mcard-info{padding:10px 12px 12px}
 .mcard-name{font-size:13px;font-weight:700;color:var(--g9);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mcard-pts{font-size:14px;font-weight:800;color:var(--g)}
@@ -89,13 +92,18 @@ export default function MarketPage() {
           <div className="mgrid">
             {filtered.map(item => (
               <div key={item.id} className="mcard" onClick={() => router.push(`/market/${item.id}`)}>
-                {item.photo_url
-                  ? <img alt={item.name} className="mcard-img" src={item.photo_url} />
-                  : <div className="mcard-img" />
-                }
+                <div className="mcard-img-wrap">
+                  {item.photo_url
+                    ? <img alt={item.name} className="mcard-img" src={item.photo_url} />
+                    : <div className="mcard-img" />
+                  }
+                  {item.status === 'sold' && (
+                    <div className="sold-badge"><span>판매완료</span></div>
+                  )}
+                </div>
                 <div className="mcard-info">
                   <div className="mcard-name">{item.name}</div>
-                  <div className="mcard-pts">{calcPts(item.days)}P</div>
+                  <div className="mcard-pts" style={{color: item.status === 'sold' ? '#94a3b8' : ''}}>{calcPts(item.days)}P</div>
                   <div className="mcard-seller">판매자: {item.seller}</div>
                 </div>
               </div>

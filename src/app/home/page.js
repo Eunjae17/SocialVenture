@@ -21,18 +21,61 @@ const CSS = `
 .home-content{background:#f5f5f5}
 .cscroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}
 .cscroll::-webkit-scrollbar{display:none}
+.noti-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;padding:20px}
+.noti-box{background:#fff;border-radius:20px;padding:24px;width:100%;text-align:center}
+.noti-icon{font-size:40px;margin-bottom:12px}
+.noti-msg{font-size:15px;color:#0a0a0a;line-height:1.6;margin-bottom:20px;font-weight:500}
+.noti-btn{width:100%;padding:14px;background:#00C950;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
 `;
 
 export default function HomePage() {
   const router = useRouter();
   const [nickname] = useState(() => getStoredValue('userNickname'));
-  const [points] = useState(() => getStoredNumber('userPoints'));
+  const [points, setPoints] = useState(() => getStoredNumber('userPoints'));
   const [challenges, setChallenges] = useState([]);
-  const [logCounts, setLogCounts] = useState({}); // { challengeId: count }
+  const [logCounts, setLogCounts] = useState({});
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const kakaoId = localStorage.getItem('kakaoId');
     if (!kakaoId) return;
+
+    // 읽지 않은 알림 확인
+    supabase
+      .from('notifications')
+      .select('*')
+      .eq('kakao_id', kakaoId)
+      .eq('read', false)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setNotification(data[0]);
+          // 읽음 처리
+          supabase.from('notifications').update({ read: true }).eq('id', data[0].id);
+        }
+      });
+
+    // 판매 수익 포인트 반영 (유효기간 안 지난 것만)
+    supabase
+      .from('user_points')
+      .select('amount')
+      .eq('kakao_id', kakaoId)
+      .eq('type', 'sold')
+      .gt('expires_at', new Date().toISOString())
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const soldPts = data.reduce((sum, r) => sum + r.amount, 0);
+          const currentPts = getStoredNumber('userPoints');
+          const newPts = currentPts + soldPts;
+          localStorage.setItem('userPoints', String(newPts));
+          setPoints(newPts);
+          // 반영된 포인트는 type 변경해서 중복 방지
+          data.forEach(r => {
+            supabase.from('user_points').update({ type: 'sold_applied' }).eq('id', r.id);
+          });
+        }
+      });
 
     supabase
       .from('challenges')
@@ -148,6 +191,17 @@ export default function HomePage() {
           )}
         </div>
       </AppShell>
+
+      {/* 판매 알림 팝업 */}
+      {notification && (
+        <div className="noti-overlay">
+          <div className="noti-box">
+            <div className="noti-icon">🎉</div>
+            <div className="noti-msg">{notification.message}</div>
+            <button className="noti-btn" onClick={() => setNotification(null)}>확인</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
