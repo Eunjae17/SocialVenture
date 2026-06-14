@@ -37,6 +37,11 @@ export default function NicknamePage() {
     if (!isValid) return;
     const nickname = value.trim();
     localStorage.setItem('userNickname', nickname);
+    // 신규 유저 가입 보너스
+    const existing = parseInt(localStorage.getItem('userPoints') || '0', 10);
+    if (existing === 0) {
+      localStorage.setItem('userPoints', '500');
+    }
     router.push('/home');
   }
 

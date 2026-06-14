@@ -28,6 +28,10 @@ export default function LoginPage() {
         if (data.kakaoId) {
           localStorage.setItem('kakaoId', data.kakaoId);
         }
+        // 신규 유저 가입 보너스 (처음 로그인한 경우만)
+        if (localStorage.getItem('userPoints') === null) {
+          localStorage.setItem('userPoints', '500');
+        }
         router.push('/home');
       })
       .catch(() => {
@@ -37,10 +41,9 @@ export default function LoginPage() {
 
   function handleGuestMode() {
     localStorage.clear();
-    localStorage.setItem('userNickname', '게스트');
     localStorage.setItem('kakaoId', `guest_${Date.now()}`);
-    localStorage.setItem('userPoints', '0');
-    router.push('/home');
+    localStorage.setItem('userPoints', '500');
+    router.push('/onboarding/nickname');
   }
 
   function handleKakaoLogin() {
