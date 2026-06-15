@@ -114,7 +114,8 @@ export default function ChatListPage() {
                   }
                 </div>
                 <div className="room-info">
-                  <div className="room-name">{room.market_items?.name || '상품'} · {room.otherName}</div>
+                  <div className="room-name">{room.otherName || '상대방'}</div>
+                  <div style={{fontSize:'11px', color:'#c4c9d4', marginBottom:'2px'}}>{room.market_items?.name || ''}</div>
                   <div className={`room-last${room.unreadCount > 0 ? ' unread' : ''}`}>
                     {room.lastMsg?.content || '채팅을 시작해보세요'}
                   </div>

@@ -5,10 +5,16 @@ import { supabase } from '@/lib/supabase';
 
 const CSS = `
 #app{width:100%;max-width:430px;height:100vh;height:100dvh;margin:0 auto;background:#f9fafb;display:flex;flex-direction:column;overflow:hidden}
-.tb{display:flex;align-items:center;justify-content:center;padding:14px 20px;position:relative;border-bottom:1px solid #f0f0f0;flex-shrink:0;background:#fff}
-.tb h2{font-size:15px;font-weight:700;color:#0a0a0a}
-.tb-sub{font-size:12px;color:#94a3b8;text-align:center}
-.bk{position:absolute;left:16px;background:none;border:none;cursor:pointer;font-size:22px;color:#6a7282;width:36px;height:36px;display:flex;align-items:center;justify-content:center}
+.tb{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #f0f0f0;flex-shrink:0;background:#fff;gap:10px}
+.bk{background:none;border:none;cursor:pointer;font-size:22px;color:#6a7282;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-name{font-size:15px;font-weight:700;color:#0a0a0a}
+.item-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#fff;border-bottom:1px solid #f0f0f0;cursor:pointer;flex-shrink:0}
+.item-banner:active{background:#f9fafb}
+.item-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#e5e7eb;flex-shrink:0}
+.item-info{flex:1;min-width:0}
+.item-title{font-size:13px;font-weight:600;color:#0a0a0a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-sub{font-size:12px;color:#94a3b8;margin-top:1px}
+.item-arrow{color:#c4c9d4;font-size:16px}
 .msgs{flex:1;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:8px}
 .msgs::-webkit-scrollbar{display:none}
 .msg-row{display:flex;flex-direction:column}
@@ -18,12 +24,12 @@ const CSS = `
 .bubble.me{background:#00C950;color:#fff;border-bottom-right-radius:4px}
 .bubble.other{background:#fff;color:#0a0a0a;border-bottom-left-radius:4px;border:1px solid #f0f0f0}
 .msg-time{font-size:11px;color:#c4c9d4;margin-top:3px;padding:0 4px}
+.sender-name{font-size:12px;color:#6a7282;margin-bottom:3px;padding-left:4px}
 .input-row{display:flex;align-items:center;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #f0f0f0;flex-shrink:0}
 .msg-input{flex:1;border:1.5px solid #e5e7eb;border-radius:22px;padding:10px 16px;font-size:14px;font-family:'Noto Sans KR',sans-serif;color:#0a0a0a;outline:none;resize:none;line-height:1.4;max-height:100px}
 .msg-input:focus{border-color:#00C950}
 .send-btn{width:40px;height:40px;border-radius:50%;background:#00C950;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .send-btn:disabled{background:#e5e7eb;cursor:not-allowed}
-.date-divider{text-align:center;font-size:11px;color:#94a3b8;margin:8px 0}
 `;
 
 function formatTime(iso) {
@@ -49,26 +55,21 @@ export default function ChatRoomPage({ params }) {
     setKakaoId(kid);
     setNickname(nick);
 
-    // 읽음 처리 - 입장 시 현재 시간 저장
     localStorage.setItem(`chat_last_read_${roomId}`, new Date().toISOString());
 
-    // 채팅방 정보
-    supabase.from('chat_rooms').select('*, market_items(name)').eq('id', roomId).single()
+    supabase.from('chat_rooms').select('*, market_items(id, name, photo_url, price)').eq('id', roomId).single()
       .then(({ data }) => setRoom(data));
 
-    // 기존 메시지 로드
     supabase.from('chat_messages').select('*').eq('room_id', roomId).order('created_at', { ascending: true })
       .then(({ data }) => setMessages(data || []));
 
-    // 실시간 구독
     const channel = supabase.channel(`room-${roomId}`)
       .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'chat_messages',
+        event: 'INSERT', schema: 'public', table: 'chat_messages',
         filter: `room_id=eq.${roomId}`,
       }, (payload) => {
         setMessages(prev => [...prev, payload.new]);
+        localStorage.setItem(`chat_last_read_${roomId}`, new Date().toISOString());
       })
       .subscribe();
 
@@ -98,25 +99,41 @@ export default function ChatRoomPage({ params }) {
     }
   }
 
+  const otherName = room
+    ? (room.buyer_kakao_id === kakaoId ? room.seller_nickname : room.buyer_nickname)
+    : '';
+
   return (
     <>
       <style>{CSS}</style>
       <div id="app">
+        {/* 상단 바 - 상대방 이름 */}
         <div className="tb">
           <button className="bk" onClick={() => router.push('/chat')}>‹</button>
-          <div>
-            <div className="tb h2" style={{fontSize:'15px',fontWeight:700,color:'#0a0a0a',textAlign:'center'}}>{room?.market_items?.name || '채팅'}</div>
-          </div>
+          <div className="tb-name">{otherName || '채팅'}</div>
         </div>
 
+        {/* 상품 배너 - 당근마켓 스타일 */}
+        {room?.market_items && (
+          <div className="item-banner" onClick={() => router.push(`/market/${room.market_items.id}`)}>
+            {room.market_items.photo_url
+              ? <img className="item-thumb" src={room.market_items.photo_url} alt="" />
+              : <div className="item-thumb" />
+            }
+            <div className="item-info">
+              <div className="item-title">{room.market_items.name}</div>
+              <div className="item-sub">{room.market_items.price || '가격 미정'} · 판매 페이지 보기</div>
+            </div>
+            <span className="item-arrow">›</span>
+          </div>
+        )}
+
         <div className="msgs">
-          {messages.map((msg, i) => {
+          {messages.map((msg) => {
             const isMe = msg.sender_kakao_id === kakaoId;
             return (
               <div key={msg.id} className={`msg-row ${isMe ? 'me' : 'other'}`}>
-                {!isMe && (
-                  <div style={{fontSize:'12px',color:'#6a7282',marginBottom:'3px',paddingLeft:'4px'}}>{msg.sender_nickname || '상대방'}</div>
-                )}
+                {!isMe && <div className="sender-name">{msg.sender_nickname || '상대방'}</div>}
                 <div className={`bubble ${isMe ? 'me' : 'other'}`}>{msg.content}</div>
                 <div className="msg-time">{formatTime(msg.created_at)}</div>
               </div>
