@@ -51,7 +51,7 @@ const CSS = `
 .dot-label{font-size:12px;color:#6a7282}
 .dot-label.done{color:#00C950;font-weight:600}
 .done-bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:16px 20px calc(20px + env(safe-area-inset-bottom));background:#fff}
-.alldone-screen{height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;padding:40px 24px;text-align:center;overflow:hidden}
+.alldone-screen{height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;padding:40px 24px;text-align:center;overflow:hidden;max-width:430px;margin:0 auto;width:100%}
 .alldone-icon{font-size:60px;margin-bottom:16px;animation:pop .4s ease}
 @keyframes pop{0%{transform:scale(.6);opacity:0}80%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
 .alldone-title{font-size:26px;font-weight:800;color:#0a0a0a;letter-spacing:-.6px;margin-bottom:8px}
