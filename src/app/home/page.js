@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import { supabase } from '@/lib/supabase';
 
-const registerImg = "https://www.figma.com/api/mcp/asset/a7f3fd68-90b1-43ee-8f94-e7ee384151d7";
+const registerImg = "/register-illust.png";
 
 function getStoredValue(key, fallback = '') {
   if (typeof window === 'undefined') return fallback;
