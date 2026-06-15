@@ -68,7 +68,11 @@ export default function ChatRoomPage({ params }) {
         event: 'INSERT', schema: 'public', table: 'chat_messages',
         filter: `room_id=eq.${roomId}`,
       }, (payload) => {
-        setMessages(prev => [...prev, payload.new]);
+        // 내가 보낸 메시지는 낙관적 업데이트로 이미 추가됐으므로 skip
+        const kid = localStorage.getItem('kakaoId') || '';
+        if (payload.new.sender_kakao_id !== kid) {
+          setMessages(prev => [...prev, payload.new]);
+        }
         localStorage.setItem(`chat_last_read_${roomId}`, new Date().toISOString());
       })
       .subscribe();
