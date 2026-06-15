@@ -73,6 +73,7 @@ export default function HomePage() {
           // 반영된 포인트는 type 변경해서 중복 방지
           data.forEach(r => {
             supabase.from('user_points').update({ type: 'sold_applied' }).eq('id', r.id);
+            supabase.from('point_history').insert({ kakao_id: kakaoId, amount: r.amount, reason: '판매 수익' });
           });
         }
       });

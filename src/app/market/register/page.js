@@ -84,6 +84,9 @@ function MarketRegisterInner() {
         setBonusPts(prev => prev + BONUS_PTS[key]);
         const curPts = parseInt(localStorage.getItem('userPoints') || '0', 10);
         localStorage.setItem('userPoints', String(curPts + BONUS_PTS[key]));
+        const kakaoId = localStorage.getItem('kakaoId');
+        const labelMap = { detail: '소재 디테일 사진 보너스', front: '정면 사진 보너스', wash: '세탁 인증 보너스' };
+        if (kakaoId) supabase.from('point_history').insert({ kakao_id: kakaoId, amount: BONUS_PTS[key], reason: labelMap[key] });
       }
     };
     input.click();

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function NicknamePage() {
   const router = useRouter();
@@ -37,10 +38,12 @@ export default function NicknamePage() {
     if (!isValid) return;
     const nickname = value.trim();
     localStorage.setItem('userNickname', nickname);
-    // 신규 유저 가입 보너스
+    // 신규 유저 가입 보너스 (게스트 경로)
     const existing = parseInt(localStorage.getItem('userPoints') || '0', 10);
     if (existing === 0) {
       localStorage.setItem('userPoints', '500');
+      const kakaoId = localStorage.getItem('kakaoId');
+      if (kakaoId) supabase.from('point_history').insert({ kakao_id: kakaoId, amount: 500, reason: '가입 보너스' });
     }
     router.push('/home');
   }

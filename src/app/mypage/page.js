@@ -94,7 +94,7 @@ export default function MypagePage() {
               <div className="stat-label">완료한 챌린지</div>
               <div className="stat-value">{loading ? '...' : `${stats.challenges}개`}</div>
             </div>
-            <div className="stat-item">
+            <div className="stat-item" onClick={() => router.push('/mypage/points')} style={{cursor:'pointer'}}>
               <div className="stat-icon">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
               </div>

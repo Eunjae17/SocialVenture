@@ -1,6 +1,7 @@
 'use client'
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 const KAKAO_REST_API_KEY = '4825517f3d957c77bda439ac0479327d';
 
@@ -31,6 +32,9 @@ export default function LoginPage() {
         // 신규 유저 가입 보너스 (처음 로그인한 경우만)
         if (localStorage.getItem('userPoints') === null) {
           localStorage.setItem('userPoints', '500');
+          if (data.kakaoId) {
+            supabase.from('point_history').insert({ kakao_id: data.kakaoId, amount: 500, reason: '가입 보너스' });
+          }
         }
         router.push('/home');
       })

@@ -215,6 +215,11 @@ function ChallengeLogInner() {
         const currentPts = parseInt(localStorage.getItem('userPoints') || '0', 10);
         const newPts = currentPts + (selected.pts || 0);
         localStorage.setItem('userPoints', String(newPts));
+        await supabase.from('point_history').insert({
+          kakao_id: kakaoId,
+          amount: selected.pts || 0,
+          reason: `챌린지 완료: ${selected.name}`,
+        });
       }
 
       setDoneInfo({ dayNum, totalDays: selected.days, isAllDone, pts: selected.pts || 0 });
