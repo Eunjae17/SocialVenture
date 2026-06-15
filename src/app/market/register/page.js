@@ -163,6 +163,7 @@ function MarketRegisterInner() {
         name: challengeName,
         days: parseInt(challengeDays) || 0,
         category: challengeCategory,
+        challenge_id: challengeId || null,
         price,
         purchased_when: when,
         pollution,

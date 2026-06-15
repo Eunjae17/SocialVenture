@@ -34,11 +34,30 @@ export default function HomePage() {
   const [points, setPoints] = useState(() => getStoredNumber('userPoints'));
   const [challenges, setChallenges] = useState([]);
   const [logCounts, setLogCounts] = useState({});
+  const [registeredChallengeIds, setRegisteredChallengeIds] = useState(new Set());
+  const [hasUnreadChat, setHasUnreadChat] = useState(false);
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const kakaoId = localStorage.getItem('kakaoId');
     if (!kakaoId) return;
+
+    // 읽지 않은 채팅 확인
+    supabase
+      .from('chat_rooms')
+      .select('id')
+      .or(`buyer_kakao_id.eq.${kakaoId},seller_kakao_id.eq.${kakaoId}`)
+      .then(async ({ data }) => {
+        const rooms = data || [];
+        for (const room of rooms) {
+          const lastRead = localStorage.getItem(`chat_last_read_${room.id}`);
+          const query = supabase.from('chat_messages').select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id).neq('sender_kakao_id', kakaoId);
+          if (lastRead) query.gt('created_at', lastRead);
+          const { count } = await query;
+          if (count > 0) { setHasUnreadChat(true); return; }
+        }
+      });
 
     // 읽지 않은 알림 확인
     supabase
@@ -100,6 +119,15 @@ export default function HomePage() {
             counts[l.challenge_id] = (counts[l.challenge_id] || 0) + 1;
           });
           setLogCounts(counts);
+
+          // 마켓에 이미 등록된 챌린지 ID 가져오기
+          const { data: marketItems } = await supabase
+            .from('market_items')
+            .select('challenge_id')
+            .eq('kakao_id', kakaoId)
+            .not('challenge_id', 'is', null);
+          const registeredIds = new Set((marketItems || []).map(m => m.challenge_id));
+          setRegisteredChallengeIds(registeredIds);
         }
       });
   }, []);
@@ -116,7 +144,7 @@ export default function HomePage() {
             <div style={{fontSize:'20px', fontWeight:600, color:'#0a0a0a', letterSpacing:'-0.45px'}}>안녕하세요, {nickname || ''}님!</div>
             <div style={{fontSize:'14px', color:'#6a7282', marginTop:'2px', letterSpacing:'-0.15px'}}>오늘도 챌린지에 도전해보세요</div>
           </div>
-          <div style={{display:'flex', alignItems:'center', gap:'8px'}}><button onClick={() => router.push('/chat')} style={{background:'none', border:'none', cursor:'pointer', padding:'4px', display:'flex', alignItems:'center'}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button><div style={{background:'#dcfce7', color:'#008236', borderRadius:'999px', padding:'6px 14px', fontSize:'14px', fontWeight:400, whiteSpace:'nowrap'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'8px'}}><button onClick={() => router.push('/chat')} style={{background:'none', border:'none', cursor:'pointer', padding:'4px', display:'flex', alignItems:'center', position:'relative'}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>{hasUnreadChat && <span style={{position:'absolute', top:'2px', right:'2px', width:'8px', height:'8px', background:'#FF3B30', borderRadius:'50%', border:'1.5px solid #fff'}}/>}</button><div style={{background:'#dcfce7', color:'#008236', borderRadius:'999px', padding:'6px 14px', fontSize:'14px', fontWeight:400, whiteSpace:'nowrap'}}>
             {points > 0 ? `${points.toLocaleString()}P` : '0P'}
           </div></div>
         </div>
@@ -185,7 +213,7 @@ export default function HomePage() {
                       <span>•</span>
                       <span>{c.start_date}</span>
                     </div>
-                    {isDone && (
+                    {isDone && !registeredChallengeIds.has(c.id) && (
                       <button
                         onClick={() => router.push(`/market/register?name=${encodeURIComponent(c.name)}&days=${c.days}&category=${encodeURIComponent(c.category||'')}&challengeId=${c.id}`)}
                         style={{marginTop:'10px', width:'100%', padding:'8px', background:'#f0fdf4', color:'#008236', border:'1px solid #dcfce7', borderRadius:'8px', fontSize:'13px', fontWeight:600, fontFamily:'Noto Sans KR,sans-serif', cursor:'pointer'}}

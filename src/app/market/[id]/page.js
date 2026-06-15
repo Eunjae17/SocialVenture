@@ -187,16 +187,25 @@ export default function DetailPage({ params }) {
             {(() => {
               const kakaoId = typeof window !== 'undefined' ? localStorage.getItem('kakaoId') : null;
               const isSeller = kakaoId === item.kakao_id;
-              return !isSeller && (
-                <button className="btn" onClick={openChat} disabled={chatLoading}
-                  style={{background:'#fff', color:'#00C950', border:'1.5px solid #00C950', marginBottom:'8px'}}>
-                  {chatLoading ? '연결 중...' : '💬 판매자에게 문의하기'}
-                </button>
+              if (isSeller) {
+                return (
+                  <button className="btn" disabled style={{background:'#e5e7eb', color:'#94a3b8', cursor:'not-allowed'}}>
+                    내가 등록한 상품이에요
+                  </button>
+                );
+              }
+              return (
+                <>
+                  <button className="btn" onClick={openChat} disabled={chatLoading}
+                    style={{background:'#fff', color:'#00C950', border:'1.5px solid #00C950', marginBottom:'8px'}}>
+                    {chatLoading ? '연결 중...' : '💬 판매자에게 문의하기'}
+                  </button>
+                  <button className="btn" onClick={handleBuy} disabled={item.status === 'sold'} style={item.status === 'sold' ? {background:'#e5e7eb', color:'#94a3b8', cursor:'not-allowed'} : {}}>
+                    {item.status === 'sold' ? '판매완료' : `${pts}P로 구매하기`}
+                  </button>
+                </>
               );
             })()}
-            <button className="btn" onClick={handleBuy} disabled={item.status === 'sold'} style={item.status === 'sold' ? {background:'#e5e7eb', color:'#94a3b8', cursor:'not-allowed'} : {}}>
-              {item.status === 'sold' ? '판매완료' : `${pts}P로 구매하기`}
-            </button>
           </div>
 
           {modal === 'buy' && (

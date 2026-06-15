@@ -49,6 +49,9 @@ export default function ChatRoomPage({ params }) {
     setKakaoId(kid);
     setNickname(nick);
 
+    // 읽음 처리 - 입장 시 현재 시간 저장
+    localStorage.setItem(`chat_last_read_${roomId}`, new Date().toISOString());
+
     // 채팅방 정보
     supabase.from('chat_rooms').select('*, market_items(name)').eq('id', roomId).single()
       .then(({ data }) => setRoom(data));
