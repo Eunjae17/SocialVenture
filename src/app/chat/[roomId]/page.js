@@ -48,6 +48,7 @@ export default function ChatRoomPage({ params }) {
   const [kakaoId, setKakaoId] = useState('');
   const [nickname, setNickname] = useState('');
   const bottomRef = useRef(null);
+  const composingRef = useRef(false);
 
   useEffect(() => {
     const kid = localStorage.getItem('kakaoId') || '';
@@ -99,7 +100,7 @@ export default function ChatRoomPage({ params }) {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+    if (e.key === 'Enter' && !e.shiftKey && !composingRef.current) {
       e.preventDefault();
       sendMessage();
     }
@@ -155,6 +156,8 @@ export default function ChatRoomPage({ params }) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            onCompositionStart={() => { composingRef.current = true; }}
+            onCompositionEnd={() => { composingRef.current = false; }}
             rows={1}
           />
           <button className="send-btn" onClick={sendMessage} disabled={!input.trim()}>
