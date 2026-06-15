@@ -55,6 +55,7 @@ export default function DetailPage({ params }) {
   const [userPoints, setUserPoints] = useState(0);
   const [modal, setModal] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     const pts = parseInt(localStorage.getItem('userPoints') || '0', 10);
@@ -80,6 +81,29 @@ export default function DetailPage({ params }) {
   function handleBuy() {
     if (userPoints >= pts) setModal('buy');
     else setModal('insuf');
+  }
+
+  async function openChat() {
+    const buyerKakaoId = localStorage.getItem('kakaoId');
+    if (!buyerKakaoId || buyerKakaoId === item.kakao_id) return;
+    setChatLoading(true);
+    // 기존 채팅방 확인
+    const { data: existing } = await supabase.from('chat_rooms')
+      .select('id').eq('item_id', id).eq('buyer_kakao_id', buyerKakaoId).single();
+    if (existing) {
+      router.push(`/chat/${existing.id}`);
+      return;
+    }
+    // 새 채팅방 생성
+    const { data: newRoom } = await supabase.from('chat_rooms').insert({
+      item_id: id,
+      buyer_kakao_id: buyerKakaoId,
+      seller_kakao_id: item.kakao_id,
+      buyer_nickname: localStorage.getItem('userNickname') || '',
+      seller_nickname: item.seller,
+    }).select().single();
+    setChatLoading(false);
+    if (newRoom) router.push(`/chat/${newRoom.id}`);
   }
 
   async function confirmBuy() {
@@ -160,6 +184,16 @@ export default function DetailPage({ params }) {
           </div>
           <div className="bwrap">
             <div className="pts-notice">보유 포인트: <strong style={{color:'var(--g)'}}>{userPoints.toLocaleString()}P</strong></div>
+            {(() => {
+              const kakaoId = typeof window !== 'undefined' ? localStorage.getItem('kakaoId') : null;
+              const isSeller = kakaoId === item.kakao_id;
+              return !isSeller && (
+                <button className="btn" onClick={openChat} disabled={chatLoading}
+                  style={{background:'#fff', color:'#00C950', border:'1.5px solid #00C950', marginBottom:'8px'}}>
+                  {chatLoading ? '연결 중...' : '💬 판매자에게 문의하기'}
+                </button>
+              );
+            })()}
             <button className="btn" onClick={handleBuy} disabled={item.status === 'sold'} style={item.status === 'sold' ? {background:'#e5e7eb', color:'#94a3b8', cursor:'not-allowed'} : {}}>
               {item.status === 'sold' ? '판매완료' : `${pts}P로 구매하기`}
             </button>

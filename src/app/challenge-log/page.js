@@ -210,8 +210,8 @@ function ChallengeLogInner() {
       const dayNum = count || 1;
       const isAllDone = dayNum >= selected.days;
 
-      // 챌린지 완전 완료 시 포인트 업데이트
-      if (isAllDone) {
+      // 챌린지 완전 완료 시 포인트 업데이트 (정확히 완료 일차에만 1회 지급)
+      if (dayNum === selected.days) {
         const currentPts = parseInt(localStorage.getItem('userPoints') || '0', 10);
         const newPts = currentPts + (selected.pts || 0);
         localStorage.setItem('userPoints', String(newPts));

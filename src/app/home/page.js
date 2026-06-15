@@ -116,9 +116,9 @@ export default function HomePage() {
             <div style={{fontSize:'20px', fontWeight:600, color:'#0a0a0a', letterSpacing:'-0.45px'}}>안녕하세요, {nickname || ''}님!</div>
             <div style={{fontSize:'14px', color:'#6a7282', marginTop:'2px', letterSpacing:'-0.15px'}}>오늘도 챌린지에 도전해보세요</div>
           </div>
-          <div style={{background:'#dcfce7', color:'#008236', borderRadius:'999px', padding:'6px 14px', fontSize:'14px', fontWeight:400, whiteSpace:'nowrap'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'8px'}}><button onClick={() => router.push('/chat')} style={{background:'none', border:'none', cursor:'pointer', padding:'4px', display:'flex', alignItems:'center'}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button><div style={{background:'#dcfce7', color:'#008236', borderRadius:'999px', padding:'6px 14px', fontSize:'14px', fontWeight:400, whiteSpace:'nowrap'}}>
             {points > 0 ? `${points.toLocaleString()}P` : '0P'}
-          </div>
+          </div></div>
         </div>
 
         {/* 챌린지 등록 배너 */}
@@ -185,6 +185,14 @@ export default function HomePage() {
                       <span>•</span>
                       <span>{c.start_date}</span>
                     </div>
+                    {isDone && (
+                      <button
+                        onClick={() => router.push(`/market/register?name=${encodeURIComponent(c.name)}&days=${c.days}&category=${encodeURIComponent(c.category||'')}&challengeId=${c.id}`)}
+                        style={{marginTop:'10px', width:'100%', padding:'8px', background:'#f0fdf4', color:'#008236', border:'1px solid #dcfce7', borderRadius:'8px', fontSize:'13px', fontWeight:600, fontFamily:'Noto Sans KR,sans-serif', cursor:'pointer'}}
+                      >
+                        🛍️ 마켓에 등록하기
+                      </button>
+                    )}
                   </div>
                 );
               })}
