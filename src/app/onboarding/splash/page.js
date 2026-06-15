@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef } from 'react';
 
-const illustrationImg = "https://www.figma.com/api/mcp/asset/81068431-7aa8-4e61-b166-d173315243bf";
+const illustrationImg = "/register-illust.png";
 
 export default function SplashPage() {
   const redirected = useRef(false);
