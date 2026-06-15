@@ -187,7 +187,7 @@ export default function LoginPage() {
         <div className="container">
           <div className="logo-area">
             <img src="/logo.png" alt="옷옷" style={{width:'120px', height:'120px', borderRadius:'28px', display:'block', margin:'0 auto 8px'}} />
-            <div className="logo-sub">지속 가능한 패션 챌린지 & 마켓</div>
+            <div className="logo-sub">옷에서 옷으로 이어지는 순환</div>
           </div>
           <button className="btn-kakao" onClick={handleKakaoLogin}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">

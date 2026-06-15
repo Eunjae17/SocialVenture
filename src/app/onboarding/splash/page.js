@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef } from 'react';
 
-const illustrationImg = "/register-illust.png";
+const illustrationImg = "/logo.png";
 
 export default function SplashPage() {
   const redirected = useRef(false);
@@ -33,28 +33,23 @@ export default function SplashPage() {
           overflow:hidden;
         }
         .splash-title {
-          font-family:'Inter','Noto Sans KR',sans-serif;
-          font-size:28px;
-          font-weight:700;
-          color:#fff;
-          text-align:center;
-          margin-top:140px;
-          line-height:1.25;
+          display:none;
         }
         .splash-sub {
           font-family:'Inter','Noto Sans KR',sans-serif;
-          font-size:18px;
-          font-weight:600;
-          color:#a3ffc8;
+          font-size:17px;
+          font-weight:500;
+          color:rgba(255,255,255,0.85);
           text-align:center;
-          margin-top:4px;
+          margin-top:16px;
           line-height:1.25;
         }
         .splash-illust {
-          width:327px;
-          height:294px;
+          width:160px;
+          height:160px;
           object-fit:cover;
-          margin-top:109px;
+          border-radius:36px;
+          margin-top:0px;
         }
         .home-indicator {
           position:absolute;
@@ -68,13 +63,12 @@ export default function SplashPage() {
         }
       `}</style>
       <div className="splash-wrap" onClick={() => { window.location.href = '/onboarding/login'; }}>
-        <div className="splash-title">옷옷</div>
-        <div className="splash-sub">옷에서 옷으로 이어지는 순환</div>
         <img
           className="splash-illust"
           src={illustrationImg}
-          alt="옷옷 일러스트"
+          alt="옷옷 로고"
         />
+        <div className="splash-sub">옷에서 옷으로 이어지는 순환</div>
         <div className="home-indicator" />
       </div>
     </>
