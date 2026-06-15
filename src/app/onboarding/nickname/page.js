@@ -54,7 +54,7 @@ export default function NicknamePage() {
       <style>{`
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
         html, body { width:100%; height:100%; font-family:-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
-        body { background-color:#FFFFFF; display:flex; flex-direction:column; padding:0 24px; min-height:100vh; }
+        body { background-color:#FFFFFF; display:flex; justify-content:center; min-height:100vh; }
         .header { margin-top:80px; font-size:26px; font-weight:700; line-height:1.4; color:#1A1A1A; letter-spacing:-0.5px; }
         .input-section { margin-top:48px; }
         .input-label { font-size:14px; font-weight:600; color:#333333; margin-bottom:10px; }
@@ -70,7 +70,7 @@ export default function NicknamePage() {
         .start-btn.active { background-color:#00C950; }
         .start-btn.active:active { opacity:0.85; }
         .start-btn:disabled { cursor:not-allowed; }
-        .page-body { display:flex; flex-direction:column; min-height:100vh; padding:0 24px; }
+        .page-body { display:flex; flex-direction:column; min-height:100vh; width:100%; max-width:430px; padding:0 24px; }
       `}</style>
       <div className="page-body">
         <div className="header">닉네임을 입력해주세요</div>
