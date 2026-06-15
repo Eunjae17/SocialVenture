@@ -84,12 +84,14 @@ export default function ChatRoomPage({ params }) {
     const content = input.trim();
     if (!content || !kakaoId) return;
     setInput('');
-    await supabase.from('chat_messages').insert({
-      room_id: roomId,
-      sender_kakao_id: kakaoId,
-      sender_nickname: nickname,
-      content,
-    });
+    // 바로 화면에 표시
+    const tempMsg = { id: `temp-${Date.now()}`, room_id: roomId, sender_kakao_id: kakaoId, sender_nickname: nickname, content, created_at: new Date().toISOString() };
+    setMessages(prev => [...prev, tempMsg]);
+    const { data } = await supabase.from('chat_messages').insert({
+      room_id: roomId, sender_kakao_id: kakaoId, sender_nickname: nickname, content,
+    }).select().single();
+    // 실제 데이터로 교체
+    if (data) setMessages(prev => prev.map(m => m.id === tempMsg.id ? data : m));
   }
 
   function handleKeyDown(e) {
@@ -109,7 +111,7 @@ export default function ChatRoomPage({ params }) {
       <div id="app">
         {/* 상단 바 - 상대방 이름 */}
         <div className="tb">
-          <button className="bk" onClick={() => router.push('/chat')}>‹</button>
+          <button className="bk" onClick={() => router.back()}>‹</button>
           <div className="tb-name">{otherName || '채팅'}</div>
         </div>
 
