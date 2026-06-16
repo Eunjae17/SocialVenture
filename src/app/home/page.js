@@ -21,8 +21,8 @@ const CSS = `
 .home-content{background:#f5f5f5}
 .cscroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}
 .cscroll::-webkit-scrollbar{display:none}
-.noti-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;padding:20px}
-.noti-box{background:#fff;border-radius:20px;padding:24px;width:100%;text-align:center}
+.noti-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center}
+.noti-box{background:#fff;border-radius:20px;padding:24px;width:calc(100% - 40px);max-width:390px;text-align:center}
 .noti-icon{font-size:40px;margin-bottom:12px}
 .noti-msg{font-size:15px;color:#0a0a0a;line-height:1.6;margin-bottom:20px;font-weight:500}
 .noti-btn{width:100%;padding:14px;background:#00C950;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
