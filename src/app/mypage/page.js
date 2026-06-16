@@ -9,7 +9,7 @@ const CSS = `
 .profile-section { background:white; padding:24px 24px 28px; }
 .profile-row { display:flex; align-items:center; gap:20px; margin-bottom:28px; }
 .avatar { width:80px; height:80px; border-radius:50%; background:#DCFCE7; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.avatar-inner { width:30px; height:30px; background:#0A0A0A; }
+.avatar-inner { width:40px; height:40px; color:#00C950; }
 .profile-info { flex:1; }
 .profile-name { font-size:22px; font-weight:700; color:#0A0A0A; letter-spacing:-0.5px; margin-bottom:4px; }
 .profile-email { font-size:14px; color:#6A7282; letter-spacing:-0.2px; }
@@ -80,7 +80,9 @@ export default function MypagePage() {
         <div className="profile-section">
           <div className="profile-row">
             <div className="avatar">
-              <div className="avatar-inner"></div>
+              <svg className="avatar-inner" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
             </div>
             <div className="profile-info">
               <div className="profile-name">{nickname}님</div>
