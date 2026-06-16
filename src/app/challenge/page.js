@@ -380,6 +380,10 @@ export default function ChallengePage() {
                 ))}
               </div>
             </div>
+            <div style={{background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:'12px', padding:'12px 16px', margin:'12px 0 0', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+              <span style={{fontSize:'13px', color:'#008236', fontWeight:500}}>🎁 완료 시 획득 포인트</span>
+              <span style={{fontSize:'15px', fontWeight:800, color:'#00C950'}}>{({3:300,5:550,7:840}[days] || 0).toLocaleString()}P</span>
+            </div>
             <div style={{height:'24px'}}></div>
           </div>
           <div className="bwrap">

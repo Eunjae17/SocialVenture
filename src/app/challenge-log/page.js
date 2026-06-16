@@ -64,6 +64,13 @@ const CSS = `
 .alldone-total-val{font-size:20px;font-weight:700;color:#0a0a0a}
 .btn-market{width:100%;padding:16px;background:#00C950;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:-.15px;margin-bottom:10px}
 .btn-home{width:100%;padding:14px;background:#fff;color:#0a0a0a;border:1.5px solid #e5e7eb;border-radius:12px;font-size:15px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:-.15px}
+.btn-rechallenge{width:100%;padding:14px;background:#fff;color:#00C950;border:1.5px solid #00C950;border-radius:12px;font-size:15px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:-.15px;margin-top:8px}
+.carbon-card{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;border-radius:16px;padding:18px 20px;width:100%;margin-bottom:12px;text-align:center}
+.carbon-label{font-size:12px;color:#008236;font-weight:500;margin-bottom:6px}
+.carbon-val{font-size:20px;font-weight:800;color:#00C950;margin-bottom:4px}
+.carbon-sub{font-size:12px;color:#6a7282}
+.onboarding-banner{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.onboarding-banner-txt{font-size:13px;color:#008236;font-weight:500;line-height:1.5;flex:1}
 `;
 
 function ChallengeLogInner() {
@@ -81,8 +88,16 @@ function ChallengeLogInner() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [doneInfo, setDoneInfo] = useState(null); // { dayNum, totalDays }
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
+  useEffect(() => {
+    if (!localStorage.getItem('challenge_tab_visited')) {
+      setShowOnboarding(true);
+      localStorage.setItem('challenge_tab_visited', '1');
+    }
+  }, []);
 
   useEffect(() => {
     const kakaoId = localStorage.getItem('kakaoId');
@@ -255,12 +270,20 @@ function ChallengeLogInner() {
             <div className="alldone-total-label">현재 보유 포인트</div>
             <div className="alldone-total-val">{currentPts.toLocaleString()}P</div>
           </div>
+          <div className="carbon-card">
+            <div className="carbon-label">🌿 탄소 절감 임팩트</div>
+            <div className="carbon-val">{doneInfo.totalDays * 20}g CO₂</div>
+            <div className="carbon-sub">이 옷을 {doneInfo.totalDays}일 더 입어 절감했어요</div>
+          </div>
           <div style={{ width: '100%' }}>
             <button className="btn-market" onClick={() => { router.push(`/market/register?name=${encodeURIComponent(selected?.name || '')}&days=${doneInfo.totalDays}&category=${encodeURIComponent(selected?.category || '')}&challengeId=${selected?.id || ''}`); }}>
               마켓에 아이템 등록하기
             </button>
             <button className="btn-home" onClick={() => { router.refresh(); router.push('/home'); }}>
               홈으로 돌아가기
+            </button>
+            <button className="btn-rechallenge" onClick={() => router.push('/challenge')}>
+              🔄 새 챌린지 시작하기
             </button>
           </div>
         </div>
@@ -327,6 +350,13 @@ function ChallengeLogInner() {
         {/* STEP 1: 챌린지 선택 */}
         {step === 'select' && (
           <div style={{ padding: '12px 20px 20px' }}>
+            {showOnboarding && (
+              <div className="onboarding-banner">
+                <span style={{fontSize:'20px'}}>👗</span>
+                <div className="onboarding-banner-txt">옷장 속 잠든 옷을 꺼내<br/>챌린지를 시작해보세요</div>
+                <button onClick={() => setShowOnboarding(false)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#94a3b8',padding:'0'}}>✕</button>
+              </div>
+            )}
             {challenges.filter(c => (logCounts[c.id] || 0) < c.days).length === 0 ? (
               <div style={{ padding: '60px 0', textAlign: 'center', color: '#6a7282', fontSize: '14px' }}>
                 진행 중인 챌린지가 없어요

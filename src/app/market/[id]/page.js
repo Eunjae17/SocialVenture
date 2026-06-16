@@ -56,6 +56,7 @@ export default function DetailPage({ params }) {
   const [modal, setModal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
+  const [photoIdx, setPhotoIdx] = useState(0);
 
   useEffect(() => {
     const pts = parseInt(localStorage.getItem('userPoints') || '0', 10);
@@ -148,10 +149,29 @@ export default function DetailPage({ params }) {
             <h2>상품 상세</h2>
           </div>
           <div className="sl">
-            {item.photo_url
-              ? <img alt={item.name} className="det-img" src={item.photo_url} />
-              : <div className="det-img" />
-            }
+            {(() => {
+              const photos = (item.photo_urls && item.photo_urls.length > 0) ? item.photo_urls : (item.photo_url ? [item.photo_url] : []);
+              return photos.length > 0 ? (
+                <div style={{position:'relative', flexShrink:0}}>
+                  <img alt={item.name} className="det-img" src={photos[photoIdx]} />
+                  {photos.length > 1 && (
+                    <>
+                      {photoIdx > 0 && (
+                        <button onClick={() => setPhotoIdx(i => i - 1)} style={{position:'absolute',left:'10px',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,0.4)',border:'none',borderRadius:'50%',width:'32px',height:'32px',color:'#fff',fontSize:'18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+                      )}
+                      {photoIdx < photos.length - 1 && (
+                        <button onClick={() => setPhotoIdx(i => i + 1)} style={{position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,0.4)',border:'none',borderRadius:'50%',width:'32px',height:'32px',color:'#fff',fontSize:'18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
+                      )}
+                      <div style={{position:'absolute',bottom:'10px',left:'50%',transform:'translateX(-50%)',display:'flex',gap:'5px'}}>
+                        {photos.map((_, i) => (
+                          <div key={i} onClick={() => setPhotoIdx(i)} style={{width:'6px',height:'6px',borderRadius:'50%',background: i === photoIdx ? '#fff' : 'rgba(255,255,255,0.5)',cursor:'pointer'}} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : <div className="det-img" />;
+            })()}
             <div className="det-body">
               <div className="seller-row">
                 <div style={{display:'flex', alignItems:'center'}}>
